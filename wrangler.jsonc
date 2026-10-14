@@ -1,0 +1,25 @@
+// Deploy na Cloudflare (Workers + Containers). Ver a seção "Deploy" do README.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nie-infra",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-14",
+  "observability": { "enabled": true },
+  "containers": [
+    {
+      "class_name": "AppStreamlit",
+      "image": "./Dockerfile",
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "class_name": "AppStreamlit", "name": "APP" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AppStreamlit"] }],
+  "vars": {
+    "SUPABASE_URL": "https://dlhuywarplmymckiwgyw.supabase.co"
+  }
+  // SUPABASE_ANON_KEY é cadastrada como secret no painel da Cloudflare
+  // (Worker → Settings → Variables and Secrets), não neste arquivo.
+}

@@ -1,0 +1,14 @@
+{
+  "name": "nie-infra",
+  "private": true,
+  "description": "Worker da Cloudflare que serve o app Streamlit em um container",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.7"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.0"
+  }
+}

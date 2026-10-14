@@ -80,10 +80,22 @@ Dois workflows rodam no GitHub Actions:
   | `SUPABASE_PROJECT_ID` | Project Settings → General → Project ID |
   | `SUPABASE_DB_PASSWORD` | Senha do banco definida ao criar o projeto |
 
-### 4. Publicar (opcional)
+### 4. Deploy na Cloudflare
 
-No [Streamlit Community Cloud](https://share.streamlit.io), aponte para o repositório, arquivo
-`app.py`, e cole o conteúdo do seu `secrets.toml` em **Advanced settings → Secrets**.
+O app roda no **Cloudflare Containers**: o Worker em [worker/index.js](worker/index.js) recebe os
+acessos e repassa tudo (inclusive o WebSocket do Streamlit) para um container montado a partir do
+[Dockerfile](Dockerfile). A configuração está em [wrangler.jsonc](wrangler.jsonc). Requer o plano
+**Workers Paid**.
+
+1. No painel da Cloudflare: **Workers & Pages → Create → Import a repository**, escolha
+   `Mello2702/Infra`, com nome do projeto `nie-infra`, comando de build `npm install` e comando de
+   deploy `npx wrangler deploy`.
+2. Em **Settings → Variables and Secrets** do Worker, crie o secret `SUPABASE_ANON_KEY` com a
+   chave anon do Supabase. A `SUPABASE_URL` já está em `wrangler.jsonc`.
+3. Cada push na `main` gera um novo deploy. O app fica em `https://nie-infra.<sua-conta>.workers.dev`.
+
+O container desliga após 30 minutos sem uso; o primeiro acesso depois disso leva alguns segundos.
+Há uma única instância, porque o Streamlit guarda as sessões em memória.
 
 ## Desenvolvimento
 

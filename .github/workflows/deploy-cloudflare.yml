@@ -1,0 +1,41 @@
+name: Deploy na Cloudflare
+
+# Monta a imagem Docker e publica Worker + container com o Wrangler.
+# Só roda se os secrets CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID existirem.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency: deploy-cloudflare
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    outputs:
+      configurado: ${{ steps.secrets.outputs.configurado }}
+    steps:
+      - id: secrets
+        run: echo "configurado=${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: verificar
+    if: needs.verificar.outputs.configurado == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Publicar Worker e container
+        run: npx wrangler deploy
+      # Depois do deploy, para o Worker já existir; gravar o secret publica uma
+      # nova versão, que reinicia o container já com a chave.
+      - name: Gravar a chave anon do Supabase no Worker
+        if: env.SUPABASE_ANON_KEY != ''
+        run: printf '%s' "$SUPABASE_ANON_KEY" | npx wrangler secret put SUPABASE_ANON_KEY

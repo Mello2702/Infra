@@ -1,11 +1,12 @@
 // Cadastro de unidades atendidas pelo núcleo.
 import { UFS } from "../constantes.js";
-import { atualizar, excluir, inserir, listarUnidades } from "../dados.js";
+import { atualizar, excluir, inserir, listarTiposEstabelecimento, listarUnidades } from "../dados.js";
 import { temPapel } from "../estado.js";
 import * as ui from "../ui.js";
 
 const COLUNAS = [
   { campo: "nome", titulo: "Nome" },
+  { campo: "tipo", titulo: "Tipo de estabelecimento" },
   { campo: "razao_social", titulo: "Razão social" },
   { campo: "endereco", titulo: "Endereço" },
   { campo: "cidade", titulo: "Cidade" },
@@ -14,17 +15,21 @@ const COLUNAS = [
   { campo: "ativo", titulo: "Ativa", formato: (a) => (a ? "Sim" : "Não") },
 ];
 
-function formulario(registro, recarregar) {
+function formulario(registro, tipos, recarregar) {
   const novo = !registro;
   const r = registro ?? {};
+  // Tipos desativados só aparecem na unidade que já os usa.
+  const opcoesTipo = tipos.filter((t) => t.ativo || t.id === r.tipo_id).map((t) => [t.id, t.nome]);
   ui.dialogo({
     titulo: novo ? "Nova unidade" : `Editar: ${r.nome}`,
     textoSalvar: novo ? "Cadastrar" : "Salvar",
     campos: `
       <div class="grade">
         ${ui.campoTexto("nome", "Nome", r.nome, { obrigatorio: true })}
-        ${ui.campoTexto("razao_social", "Razão social", r.razao_social)}
+        ${ui.campoSelect("tipo_id", "Tipo de estabelecimento", opcoesTipo, r.tipo_id, { vazio: "— Não definido —" })}
       </div>
+      ${tipos.length ? "" : '<p class="legenda">Nenhum tipo de estabelecimento cadastrado. Cadastre em <a href="#/tipos">Tipos de estabelecimento</a>.</p>'}
+      ${ui.campoTexto("razao_social", "Razão social", r.razao_social)}
       ${ui.campoTexto("endereco", "Endereço", r.endereco)}
       <div class="grade grade--cidade">
         ${ui.campoTexto("cidade", "Cidade", r.cidade)}
@@ -35,6 +40,7 @@ function formulario(registro, recarregar) {
     aoSalvar: async (f) => {
       const valores = {
         nome: ui.texto(f.get("nome")),
+        tipo_id: f.get("tipo_id") ? Number(f.get("tipo_id")) : null,
         razao_social: ui.texto(f.get("razao_social")),
         endereco: ui.texto(f.get("endereco")),
         cidade: ui.texto(f.get("cidade")),
@@ -59,23 +65,27 @@ export async function render(el) {
   el.innerHTML =
     ui.cabecalho(
       "Unidades",
-      gerencia ? '<button class="botao botao--primario" data-acao="nova">Nova unidade</button>' : "",
+      gerencia ? '<button class="botao botao--primario" data-acao="nova" disabled>Nova unidade</button>' : "",
     ) + ui.CARREGANDO;
-  let unidades;
+  let unidades, tipos;
   try {
-    unidades = await listarUnidades();
+    [unidades, tipos] = await Promise.all([listarUnidades(), listarTiposEstabelecimento()]);
   } catch (erro) {
     el.querySelector(".carregando").outerHTML = ui.erroHTML(erro.message);
     return;
   }
   const recarregar = () => render(el);
-  el.querySelector('[data-acao="nova"]')?.addEventListener("click", () => formulario(null, recarregar));
+  const botaoNova = el.querySelector('[data-acao="nova"]');
+  if (botaoNova) {
+    botaoNova.disabled = false;
+    botaoNova.addEventListener("click", () => formulario(null, tipos, recarregar));
+  }
 
   if (!unidades.length) {
     el.querySelector(".carregando").outerHTML = ui.vazio("Nenhuma unidade cadastrada ainda.");
     return;
   }
   el.querySelector(".carregando").replaceWith(
-    ui.tabela(COLUNAS, unidades, gerencia ? (linha) => formulario(linha, recarregar) : null),
+    ui.tabela(COLUNAS, unidades, gerencia ? (linha) => formulario(linha, tipos, recarregar) : null),
   );
 }

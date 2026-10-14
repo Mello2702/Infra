@@ -54,7 +54,11 @@ function achatar(linhas, relacao, destino) {
   return linhas;
 }
 
-export const listarUnidades = () => listar("unidades", "*", "nome");
+export async function listarUnidades() {
+  return achatar(await listar("unidades", "*, tipos_estabelecimento(nome)", "nome"), "tipos_estabelecimento", "tipo");
+}
+
+export const listarTiposEstabelecimento = () => listar("tipos_estabelecimento", "*", "nome");
 
 export const listarPerfis = () => listar("perfis", "id, nome, email, papel, ativo", "nome");
 

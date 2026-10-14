@@ -28,16 +28,23 @@ INATIVO = {**ADMIN, "id": "u3", "nome": "Caio", "email": "caio@exemplo.com", "at
 
 DADOS = {
     "perfis": [ADMIN, TECNICO, INATIVO],
+    "tipos_estabelecimento": [
+        {"id": 1, "nome": "Sede administrativa", "descricao": None, "ativo": True},
+        {"id": 2, "nome": "Posto de atendimento", "descricao": None, "ativo": True},
+        {"id": 3, "nome": "Almoxarifado", "descricao": None, "ativo": False},
+    ],
     "unidades": [
         {
             "id": 1,
             "nome": "Sede",
+            "tipo_id": 1,
             "razao_social": None,
             "endereco": None,
             "cidade": "São Paulo",
             "uf": "SP",
             "uge": None,
             "ativo": True,
+            "tipos_estabelecimento": {"nome": "Sede administrativa"},
         }
     ],
     "equipamentos": [

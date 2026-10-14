@@ -4,6 +4,7 @@ import { sessao, temPapel } from "./estado.js";
 import * as conta from "./paginas/conta.js";
 import * as equipamentos from "./paginas/equipamentos.js";
 import * as painel from "./paginas/painel.js";
+import * as tipos from "./paginas/tipos.js";
 import * as unidades from "./paginas/unidades.js";
 import * as usuarios from "./paginas/usuarios.js";
 import * as visitas from "./paginas/visitas.js";
@@ -15,6 +16,7 @@ const PAGINAS = [
   { rota: "equipamentos", titulo: "Equipamentos", modulo: equipamentos },
   { rota: "visitas", titulo: "Visitas", modulo: visitas },
   { rota: "unidades", titulo: "Unidades", modulo: unidades },
+  { rota: "tipos", titulo: "Tipos de estabelecimento", modulo: tipos },
   { rota: "conta", titulo: "Minha conta", modulo: conta },
   { rota: "usuarios", titulo: "Usuários", modulo: usuarios, papeis: ["admin"] },
 ];

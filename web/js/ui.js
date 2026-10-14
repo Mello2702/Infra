@@ -159,6 +159,8 @@ export function dialogo({ titulo, campos, aoSalvar, aoExcluir, somenteLeitura = 
   const alerta = janela.querySelector(".alerta");
   const botoes = janela.querySelectorAll("footer button");
   janela.addEventListener("close", () => janela.remove());
+  // Link para outra página do sistema dentro da janela: fecha a janela ao navegar.
+  janela.addEventListener("click", (e) => e.target.closest('a[href^="#"]') && janela.close());
 
   async function executar(acao) {
     botoes.forEach((b) => (b.disabled = true));

@@ -46,6 +46,7 @@ def test_tecnico_nao_acessa_usuarios(pagina):
         ("Equipamentos", "Inventário de equipamentos"),
         ("Visitas", "Visitas às unidades"),
         ("Unidades", "Unidades"),
+        ("Tipos de estabelecimento", "Tipos de estabelecimento"),
         ("Minha conta", "Minha conta"),
     ],
 )
@@ -167,6 +168,10 @@ def test_cadastro_de_unidade_grava_todos_os_campos(pagina, supabase):
     janela = pagina.get_by_role("dialog")
     expect(janela.get_by_label("UF")).to_have_value("SP")
     janela.get_by_label("Nome").fill("Poupatempo Sé")
+    tipo = janela.get_by_label("Tipo de estabelecimento")
+    # Tipo desativado não é oferecido para unidades novas.
+    expect(tipo.locator("option", has_text="Almoxarifado")).to_have_count(0)
+    tipo.select_option(label="Posto de atendimento")
     janela.get_by_label("Razão social").fill("  Companhia de Processamento de Dados ")
     janela.get_by_label("Endereço").fill("Praça do Carmo, s/n")
     janela.get_by_label("Cidade").fill("São Paulo")
@@ -178,6 +183,7 @@ def test_cadastro_de_unidade_grava_todos_os_campos(pagina, supabase):
     assert (metodo, tabela) == ("POST", "unidades")
     assert valores == {
         "nome": "Poupatempo Sé",
+        "tipo_id": 2,
         "razao_social": "Companhia de Processamento de Dados",
         "endereco": "Praça do Carmo, s/n",
         "cidade": "São Paulo",
@@ -198,8 +204,32 @@ def test_unidade_sem_nome_nao_grava(pagina, supabase):
 
 def test_tecnico_so_consulta_unidades(pagina):
     entrar(pagina, TECNICO)
-    pagina.get_by_role("link", name="Unidades").click()
+    pagina.get_by_role("link", name="Unidades", exact=True).click()
     expect(pagina.get_by_role("cell", name="São Paulo")).to_be_visible()
+    expect(pagina.get_by_role("cell", name="Sede administrativa")).to_be_visible()
     expect(pagina.get_by_role("button", name="Nova unidade")).to_have_count(0)
-    pagina.get_by_role("row", name="Sede").click()
+    pagina.get_by_role("row", name="São Paulo").click()
     expect(pagina.get_by_role("dialog")).to_have_count(0)
+
+
+def test_cadastro_de_tipo_de_estabelecimento(pagina, supabase):
+    entrar(pagina, ADMIN)
+    pagina.get_by_role("link", name="Tipos de estabelecimento").click()
+    linha_sede = pagina.get_by_role("row", name="Sede administrativa")
+    expect(linha_sede.get_by_role("cell").nth(2)).to_have_text("1")  # unidades que usam o tipo
+    pagina.get_by_role("button", name="Novo tipo").click()
+    janela = pagina.get_by_role("dialog")
+    janela.get_by_label("Nome").fill(" Data center ")
+    janela.get_by_label("Descrição").fill("Sala de servidores")
+    janela.get_by_role("button", name="Cadastrar").click()
+    expect(janela).to_have_count(0)
+    metodo, tabela, valores = supabase.gravacoes[-1]
+    assert (metodo, tabela) == ("POST", "tipos_estabelecimento")
+    assert valores == {"nome": "Data center", "descricao": "Sala de servidores", "ativo": True}
+
+
+def test_tecnico_so_consulta_tipos(pagina):
+    entrar(pagina, TECNICO)
+    pagina.get_by_role("link", name="Tipos de estabelecimento").click()
+    expect(pagina.get_by_role("cell", name="Posto de atendimento")).to_be_visible()
+    expect(pagina.get_by_role("button", name="Novo tipo")).to_have_count(0)

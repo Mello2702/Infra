@@ -154,17 +154,21 @@ def test_texto_do_banco_e_escapado(pagina):
     try:
         entrar(pagina, ADMIN)
         pagina.get_by_role("link", name="Unidades").click()
-        expect(pagina.get_by_role("cell", name="<img src=x onerror=alert(1)>")).to_be_visible()
-        expect(pagina.locator("td img")).to_have_count(0)
+        expect(pagina.get_by_text("<img src=x onerror=alert(1)>")).to_be_visible()
+        expect(pagina.locator(".cartao-unidade img")).to_have_count(0)
     finally:
         DADOS["unidades"][0]["razao_social"] = None
+
+
+def cartao_unidade(pagina, texto):
+    return pagina.locator(".cartao-unidade", has_text=texto)
 
 
 def abrir_unidade(pagina, nome_linha=None):
     entrar(pagina, ADMIN)
     pagina.get_by_role("link", name="Unidades", exact=True).click()
     if nome_linha:
-        pagina.get_by_role("row", name=nome_linha).click()
+        cartao_unidade(pagina, nome_linha).get_by_role("button", name="Ver detalhes").click()
     else:
         pagina.get_by_role("button", name="Nova unidade").click()
     return pagina.get_by_role("dialog")
@@ -270,14 +274,47 @@ def test_unidade_sem_nome_nao_grava(pagina, supabase):
     assert supabase.gravacoes == []
 
 
+def test_unidades_aparecem_em_cartoes(pagina):
+    from conftest import DADOS
+
+    unidade = DADOS["unidades"][0]
+    unidade.update(razao_social="Centro de Atenção Integrada", endereco="Avenida Miguel Stéfano, 3030")
+    try:
+        entrar(pagina, ADMIN)
+        pagina.get_by_role("link", name="Unidades", exact=True).click()
+        cartao = cartao_unidade(pagina, "Sede")
+        expect(cartao.get_by_role("heading", name="Sede")).to_be_visible()
+        expect(cartao).to_contain_text("Centro de Atenção Integrada")
+        expect(cartao).to_contain_text("Avenida Miguel Stéfano, 3030")
+        expect(cartao.locator(".selo").first).to_have_text("São Paulo - SP")
+        expect(cartao.locator(".selo--tipo")).to_have_text(["Sede administrativa"])
+        expect(cartao.get_by_role("button", name="Ver detalhes")).to_be_visible()
+    finally:
+        unidade.update(razao_social=None, endereco=None)
+
+
+def test_busca_de_unidades(pagina):
+    entrar(pagina, ADMIN)
+    pagina.get_by_role("link", name="Unidades", exact=True).click()
+    expect(pagina.locator(".cartao-unidade")).to_have_count(1)
+    busca = pagina.get_by_label("Buscar")
+    busca.fill("administrativa")  # tipo de estabelecimento também entra na busca
+    expect(pagina.locator(".cartao-unidade")).to_have_count(1)
+    busca.fill("inexistente")
+    expect(pagina.locator(".cartao-unidade")).to_have_count(0)
+    expect(pagina.get_by_text("Nenhuma unidade encontrada para essa busca.")).to_be_visible()
+
+
 def test_tecnico_so_consulta_unidades(pagina):
     entrar(pagina, TECNICO)
     pagina.get_by_role("link", name="Unidades", exact=True).click()
-    expect(pagina.get_by_role("cell", name="São Paulo")).to_be_visible()
-    expect(pagina.get_by_role("cell", name="Sede administrativa")).to_be_visible()
     expect(pagina.get_by_role("button", name="Nova unidade")).to_have_count(0)
-    pagina.get_by_role("row", name="São Paulo").click()
-    expect(pagina.get_by_role("dialog")).to_have_count(0)
+    cartao_unidade(pagina, "Sede").get_by_role("button", name="Ver detalhes").click()
+    janela = pagina.get_by_role("dialog")
+    expect(janela.get_by_label("Nome fantasia")).to_have_value("Sede")
+    expect(janela.get_by_label("Nome fantasia")).to_be_disabled()
+    expect(janela.get_by_role("button", name="Salvar")).to_have_count(0)
+    expect(janela.get_by_role("button", name="Adicionar")).to_be_disabled()
 
 
 def test_pagina_de_tipos_nao_existe_mais(pagina):

@@ -5,28 +5,59 @@ import { temPapel } from "../estado.js";
 import { montarListaTipos, secaoTipos } from "../lista-tipos.js";
 import * as ui from "../ui.js";
 
-const COLUNAS = [
-  { campo: "nome", titulo: "Nome fantasia" },
-  { campo: "tipos", titulo: "Tipos de estabelecimento", formato: (tipos) => tipos.join(", ") },
-  { campo: "razao_social", titulo: "Razão social" },
-  { campo: "uge", titulo: "UGE" },
-  { campo: "endereco", titulo: "Endereço" },
-  { campo: "cidade", titulo: "Cidade" },
-  { campo: "uf", titulo: "UF" },
-  { campo: "ativo", titulo: "Ativa", formato: (a) => (a ? "Sim" : "Não") },
-];
-
 const ICONE_UNIDADE =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h10v17M15 9h4v12M3 21h18M8 8h4M8 12h4M8 16h4"/></svg>';
+const ICONE_LOCAL =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>';
+const ICONE_DETALHES =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-6"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4Z"/></svg>';
+
+// Mantida entre recarregamentos da página (ex.: depois de salvar).
+let busca = "";
+
+function filtrar(unidades) {
+  const termo = busca.trim().toLowerCase();
+  if (!termo) return unidades;
+  return unidades.filter((u) =>
+    [u.nome, u.razao_social, u.cidade, u.uge, u.endereco, ...u.tipos].some((c) => (c ?? "").toLowerCase().includes(termo)),
+  );
+}
+
+function cartao(u) {
+  const local = [u.cidade, u.uf].filter(Boolean).join(" - ");
+  return `
+    <article class="cartao-unidade${u.ativo ? "" : " cartao-unidade--inativa"}">
+      <header class="cartao-unidade__topo">
+        <span class="cartao-unidade__icone">${ICONE_UNIDADE}</span>
+        <div>
+          <h2 class="cartao-unidade__nome">${ui.esc(u.nome)}</h2>
+          ${u.razao_social ? `<p class="cartao-unidade__razao">${ui.esc(u.razao_social)}</p>` : ""}
+        </div>
+      </header>
+      ${u.endereco ? `<p class="cartao-unidade__endereco">${ICONE_LOCAL}<span>${ui.esc(u.endereco)}</span></p>` : ""}
+      <div class="selos">
+        ${local ? `<span class="selo">${ui.esc(local)}</span>` : ""}
+        ${u.uge ? `<span class="selo">UGE ${ui.esc(u.uge)}</span>` : ""}
+        ${u.tipos.map((t) => `<span class="selo selo--tipo">${ui.esc(t)}</span>`).join("")}
+        ${u.ativo ? "" : '<span class="selo selo--alerta">Inativa</span>'}
+      </div>
+      <footer class="cartao-unidade__rodape">
+        <button type="button" class="botao" data-detalhes="${u.id}">${ICONE_DETALHES} Ver detalhes</button>
+      </footer>
+    </article>`;
+}
 
 function formulario(registro, catalogo, recarregar) {
   const novo = !registro;
   const r = registro ?? {};
+  // Técnicos veem os detalhes, mas só gestores e administradores editam (mesma regra da RLS).
+  const podeEditar = temPapel("admin", "gestor");
   let editorTipos;
 
   const janela = ui.dialogo({
-    titulo: novo ? "Nova unidade" : `Editar: ${r.nome}`,
+    titulo: novo ? "Nova unidade" : podeEditar ? `Editar: ${r.nome}` : r.nome,
     textoSalvar: novo ? "Cadastrar" : "Salvar",
+    somenteLeitura: !podeEditar,
     campos: `
       <h3 class="secao__titulo">${ICONE_UNIDADE} Informações da unidade</h3>
       <div class="grade grade--2">
@@ -93,7 +124,34 @@ export async function render(el) {
     el.querySelector(".carregando").outerHTML = ui.vazio("Nenhuma unidade cadastrada ainda.");
     return;
   }
-  el.querySelector(".carregando").replaceWith(
-    ui.tabela(COLUNAS, unidades, gerencia ? (linha) => formulario(linha, catalogo, recarregar) : null),
-  );
+
+  el.querySelector(".carregando").outerHTML = `
+    <form class="filtros filtros--unico" role="search">
+      <label class="campo"><span>Buscar</span>
+        <input name="busca" type="search" value="${ui.esc(busca)}"
+          placeholder="Nome, razão social, cidade, UGE ou tipo de estabelecimento"></label>
+    </form>
+    <p class="legenda" data-resumo></p>
+    <div class="cartoes" data-cartoes></div>`;
+
+  const resumo = el.querySelector("[data-resumo]");
+  const area = el.querySelector("[data-cartoes]");
+  const desenhar = () => {
+    const filtradas = filtrar(unidades);
+    resumo.textContent = `${filtradas.length} de ${unidades.length} unidades`;
+    area.innerHTML = filtradas.length
+      ? filtradas.map(cartao).join("")
+      : ui.vazio("Nenhuma unidade encontrada para essa busca.");
+  };
+  area.addEventListener("click", (e) => {
+    const botao = e.target.closest("[data-detalhes]");
+    if (botao) formulario(unidades.find((u) => u.id === Number(botao.dataset.detalhes)), catalogo, recarregar);
+  });
+  const formBusca = el.querySelector(".filtros");
+  formBusca.addEventListener("submit", (e) => e.preventDefault());
+  formBusca.addEventListener("input", (e) => {
+    busca = e.target.value;
+    desenhar();
+  });
+  desenhar();
 }

@@ -2,7 +2,7 @@
 
 import streamlit as st
 
-from core import auth, ui
+from core import auth, tema, ui
 from core.constantes import PAPEIS
 
 st.set_page_config(page_title="Núcleo de Infraestrutura", page_icon="🏢", layout="wide")
@@ -27,8 +27,10 @@ if auth.tem_papel("admin"):
     )
 
 navegacao = st.navigation(paginas)
+tema.fundo_interno()
 
 with st.sidebar:
+    tema.marca(pequena=True)
     st.caption(f"{usuario['nome']} · {PAPEIS[usuario['papel']]}")
     if st.button("Sair", width="stretch"):
         auth.sair()

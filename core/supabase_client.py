@@ -3,7 +3,12 @@
 import os
 
 import streamlit as st
+import truststore
 from supabase import Client, create_client
+
+# Usa os certificados do sistema operacional. Em redes corporativas que inspecionam
+# HTTPS (como a da PRODESP) o certificado da rede só é confiável por essa via.
+truststore.inject_into_ssl()
 
 
 class ConfigAusente(Exception):

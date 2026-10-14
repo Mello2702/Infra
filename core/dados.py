@@ -1,5 +1,7 @@
 """Acesso às tabelas do Supabase."""
 
+import logging
+
 from postgrest.exceptions import APIError
 
 from core.supabase_client import cliente
@@ -26,6 +28,7 @@ def _executar(consulta) -> list[dict]:
         mensagem = _MENSAGENS.get(erro.code, f"Erro no banco de dados: {erro.message}")
         raise ErroDados(mensagem) from erro
     except Exception as erro:
+        logging.exception("Falha ao acessar o Supabase")
         raise ErroDados("Não foi possível conectar ao Supabase. Tente novamente.") from erro
 
 

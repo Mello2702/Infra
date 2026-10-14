@@ -110,9 +110,9 @@ def abrir(arquivo: str, usuario: dict | None = ADMIN) -> AppTest:
 
 
 def test_sem_configuracao_mostra_orientacao(monkeypatch):
-    monkeypatch.delenv("SUPABASE_URL", raising=False)
-    monkeypatch.delenv("SUPABASE_ANON_KEY", raising=False)
-    at = AppTest.from_file(str(RAIZ / "app.py"), default_timeout=30).run()
+    # Ignora o secrets.toml local e as variáveis de ambiente.
+    monkeypatch.setattr("core.supabase_client._ler", lambda nome: None)
+    at =AppTest.from_file(str(RAIZ / "app.py"), default_timeout=30).run()
     assert not at.exception
     assert "não configurada" in at.error[0].value
 

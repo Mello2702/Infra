@@ -1,8 +1,11 @@
 """Login com Supabase Auth e controle de acesso por papel."""
 
+import logging
+
 import streamlit as st
 from supabase import AuthError
 
+from core import tema
 from core.supabase_client import ConfigAusente, cliente
 
 
@@ -29,6 +32,7 @@ def entrar(email: str, senha: str) -> str | None:
     except AuthError:
         return "E-mail ou senha inválidos."
     except Exception:
+        logging.exception("Falha ao conectar ao Supabase no login")
         return "Não foi possível conectar ao Supabase. Tente novamente."
 
     perfil = (
@@ -57,10 +61,12 @@ def sair() -> None:
 
 
 def tela_login() -> None:
-    _, centro, _ = st.columns([1, 1.2, 1])
-    with centro:
-        st.title("Núcleo de Infraestrutura")
-        st.caption("Sistema de Gestão")
+    tema.fundo_login()
+    # Conteúdo à esquerda; o lado direito fica livre para o gráfico do fundo.
+    esquerda, _ = st.columns([1, 1.4])
+    with esquerda:
+        tema.marca()
+        st.write("")
         try:
             cliente()
         except ConfigAusente:

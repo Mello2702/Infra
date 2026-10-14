@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <pattern id="grade" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#162235" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1440" height="900" fill="#0D1624"/>
+  <rect width="1440" height="900" fill="url(#grade)"/>
+  <circle cx="1100" cy="430" r="330" fill="none" stroke="#1B2A40" stroke-width="1.5"/>
+  <circle cx="1100" cy="430" r="210" fill="none" stroke="#17243A" stroke-width="1.5"/>
+  <line x1="760" y1="700" x2="1384" y2="700" stroke="#2A3B55" stroke-width="2"/>
+  <rect x="800" y="580" width="64" height="120" rx="6" fill="none" stroke="#2A3B55" stroke-width="2"/>
+  <rect x="896" y="500" width="64" height="200" rx="6" fill="none" stroke="#2A3B55" stroke-width="2"/>
+  <rect x="992" y="540" width="64" height="160" rx="6" fill="none" stroke="#2A3B55" stroke-width="2"/>
+  <rect x="1088" y="420" width="64" height="280" rx="6" fill="#16233A" stroke="#2A3B55" stroke-width="2"/>
+  <rect x="1184" y="340" width="64" height="360" rx="6" fill="#16233A" stroke="#2A3B55" stroke-width="2"/>
+  <rect x="1280" y="240" width="64" height="460" rx="6" fill="#F2A541"/>
+  <polyline points="832,556 928,476 1024,516 1120,396 1216,316 1312,216" fill="none" stroke="#F2A541" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="1312" cy="216" r="8" fill="#F2A541"/>
+  <circle cx="1312" cy="216" r="18" fill="none" stroke="#F2A541" stroke-width="1.5" opacity="0.5"/>
+</svg>

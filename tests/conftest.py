@@ -37,14 +37,15 @@ DADOS = {
         {
             "id": 1,
             "nome": "Sede",
-            "tipo_id": 1,
             "razao_social": None,
             "endereco": None,
             "cidade": "São Paulo",
             "uf": "SP",
             "uge": None,
             "ativo": True,
-            "tipos_estabelecimento": {"nome": "Sede administrativa"},
+            "unidade_tipos": [
+                {"posicao": 1, "tipo_id": 1, "tipos_estabelecimento": {"nome": "Sede administrativa"}}
+            ],
         }
     ],
     "equipamentos": [
@@ -142,6 +143,8 @@ class SupabaseFalso:
         if req.method != "GET":
             corpo = json.loads(req.post_data) if req.post_data else None
             self.gravacoes.append((req.method, tabela, corpo))
+            if tabela.startswith("rpc/"):  # funções do banco (ex.: salvar_unidade)
+                return route.fulfill(json=1)
             if req.method == "POST":
                 return route.fulfill(status=201, body="")
             return route.fulfill(json=[{"id": 1}])

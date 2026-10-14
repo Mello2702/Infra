@@ -161,36 +161,105 @@ def test_texto_do_banco_e_escapado(pagina):
         DADOS["unidades"][0]["razao_social"] = None
 
 
-def test_cadastro_de_unidade_grava_todos_os_campos(pagina, supabase):
+def abrir_unidade(pagina, nome_linha=None):
     entrar(pagina, ADMIN)
-    pagina.get_by_role("link", name="Unidades").click()
-    pagina.get_by_role("button", name="Nova unidade").click()
-    janela = pagina.get_by_role("dialog")
-    expect(janela.get_by_label("UF")).to_have_value("SP")
-    janela.get_by_label("Nome").fill("Poupatempo Sé")
-    tipo = janela.get_by_label("Tipo de estabelecimento")
-    # Tipo desativado não é oferecido para unidades novas.
-    expect(tipo.locator("option", has_text="Almoxarifado")).to_have_count(0)
-    tipo.select_option(label="Posto de atendimento")
-    janela.get_by_label("Razão social").fill("  Companhia de Processamento de Dados ")
-    janela.get_by_label("Endereço").fill("Praça do Carmo, s/n")
+    pagina.get_by_role("link", name="Unidades", exact=True).click()
+    if nome_linha:
+        pagina.get_by_role("row", name=nome_linha).click()
+    else:
+        pagina.get_by_role("button", name="Nova unidade").click()
+    return pagina.get_by_role("dialog")
+
+
+def tipos_na_lista(janela):
+    return janela.locator("[data-tipos] tbody tr td:nth-child(2)")
+
+
+def test_cadastro_de_unidade_com_varios_tipos(pagina, supabase):
+    janela = abrir_unidade(pagina)
+    expect(janela.get_by_label("Estado (UF)")).to_have_value("SP")
+    janela.get_by_label("Nome fantasia").fill("Água Funda")
+    janela.get_by_label("Razão social").fill("  Centro de Atenção Integrada a Saúde Mental ")
+    janela.get_by_label("UGE").fill("090170")
+    janela.get_by_label("Endereço").fill("Avenida Miguel Stéfano, 3030")
     janela.get_by_label("Cidade").fill("São Paulo")
-    janela.get_by_label("UF").select_option("SP")
-    janela.get_by_label("UGE").fill("380101")
+
+    novo_tipo = janela.get_by_label("Tipo de estabelecimento", exact=True)
+    adicionar = janela.get_by_role("button", name="Adicionar")
+    expect(adicionar).to_be_disabled()
+    novo_tipo.fill("Psiquiátrico")
+    adicionar.click()
+    novo_tipo.fill("Posto de atendimento")
+    novo_tipo.press("Enter")  # Enter adiciona, não envia o formulário
+    expect(janela).to_be_visible()
+    expect(tipos_na_lista(janela)).to_have_text(["Psiquiátrico", "Posto de atendimento"])
+
     janela.get_by_role("button", name="Cadastrar").click()
     expect(janela).to_have_count(0)
-    metodo, tabela, valores = supabase.gravacoes[-1]
-    assert (metodo, tabela) == ("POST", "unidades")
-    assert valores == {
-        "nome": "Poupatempo Sé",
-        "tipo_id": 2,
-        "razao_social": "Companhia de Processamento de Dados",
-        "endereco": "Praça do Carmo, s/n",
-        "cidade": "São Paulo",
-        "uf": "SP",
-        "uge": "380101",
-        "ativo": True,
+    metodo, rota, corpo = supabase.gravacoes[-1]
+    assert (metodo, rota) == ("POST", "rpc/salvar_unidade")
+    assert corpo == {
+        "p_id": None,
+        "p_dados": {
+            "nome": "Água Funda",
+            "razao_social": "Centro de Atenção Integrada a Saúde Mental",
+            "endereco": "Avenida Miguel Stéfano, 3030",
+            "cidade": "São Paulo",
+            "uf": "SP",
+            "uge": "090170",
+            "ativo": True,
+        },
+        "p_tipos": ["Psiquiátrico", "Posto de atendimento"],
     }
+
+
+def test_tipo_repetido_nao_entra_na_lista(pagina):
+    janela = abrir_unidade(pagina, "Sede administrativa")
+    expect(tipos_na_lista(janela)).to_have_text(["Sede administrativa"])
+    janela.get_by_label("Tipo de estabelecimento", exact=True).fill("SEDE administrativa")
+    janela.get_by_role("button", name="Adicionar").click()
+    expect(janela.get_by_text("Esse tipo já foi adicionado.")).to_be_visible()
+    expect(tipos_na_lista(janela)).to_have_count(1)
+
+
+def test_editar_e_remover_tipos_da_unidade(pagina, supabase):
+    janela = abrir_unidade(pagina, "Sede administrativa")
+    janela.get_by_role("button", name="Editar Sede administrativa").click()
+    edicao = janela.get_by_label("Editar tipo 1")
+    edicao.fill("Sede regional")
+    edicao.press("Enter")
+    novo_tipo = janela.get_by_label("Tipo de estabelecimento", exact=True)
+    for nome in ("Almoxarifado", "Data center"):
+        novo_tipo.fill(nome)
+        novo_tipo.press("Enter")
+    janela.get_by_role("button", name="Remover Almoxarifado").click()
+    expect(tipos_na_lista(janela)).to_have_text(["Sede regional", "Data center"])
+    expect(janela.locator("[data-tipos] tbody tr td:first-child")).to_have_text(["1", "2"])
+
+    janela.get_by_role("button", name="Salvar").click()
+    expect(janela).to_have_count(0)
+    _, rota, corpo = supabase.gravacoes[-1]
+    assert rota == "rpc/salvar_unidade"
+    assert corpo["p_id"] == 1
+    assert corpo["p_tipos"] == ["Sede regional", "Data center"]
+
+
+def test_esc_cancela_so_a_edicao_do_tipo(pagina):
+    janela = abrir_unidade(pagina, "Sede administrativa")
+    janela.get_by_role("button", name="Editar Sede administrativa").click()
+    edicao = janela.get_by_label("Editar tipo 1")
+    edicao.fill("Outro nome")
+    edicao.press("Escape")
+    expect(janela).to_be_visible()
+    expect(tipos_na_lista(janela)).to_have_text(["Sede administrativa"])
+
+
+def test_tipo_digitado_sem_adicionar_tambem_e_salvo(pagina, supabase):
+    janela = abrir_unidade(pagina, "Sede administrativa")
+    janela.get_by_label("Tipo de estabelecimento", exact=True).fill("Psiquiátrico")
+    janela.get_by_role("button", name="Salvar").click()
+    expect(janela).to_have_count(0)
+    assert supabase.gravacoes[-1][2]["p_tipos"] == ["Sede administrativa", "Psiquiátrico"]
 
 
 def test_unidade_sem_nome_nao_grava(pagina, supabase):

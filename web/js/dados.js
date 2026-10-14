@@ -55,7 +55,19 @@ function achatar(linhas, relacao, destino) {
 }
 
 export async function listarUnidades() {
-  return achatar(await listar("unidades", "*, tipos_estabelecimento(nome)", "nome"), "tipos_estabelecimento", "tipo");
+  const linhas = await listar("unidades", "*, unidade_tipos(posicao, tipo_id, tipos_estabelecimento(nome))", "nome");
+  for (const unidade of linhas) {
+    const tipos = (unidade.unidade_tipos ?? []).sort((a, b) => a.posicao - b.posicao);
+    unidade.tipo_ids = tipos.map((t) => t.tipo_id);
+    unidade.tipos = tipos.map((t) => t.tipos_estabelecimento?.nome).filter(Boolean);
+    delete unidade.unidade_tipos;
+  }
+  return linhas;
+}
+
+/** Grava a unidade e sua lista de tipos (nomes) numa única transação no banco. */
+export async function salvarUnidade(id, valores, tipos) {
+  await executar(sb.rpc("salvar_unidade", { p_id: id ?? null, p_dados: valores, p_tipos: tipos }));
 }
 
 export const listarTiposEstabelecimento = () => listar("tipos_estabelecimento", "*", "nome");

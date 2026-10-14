@@ -328,13 +328,85 @@ a {
   gap: 14px;
 }
 
-.grade--cidade {
-  grid-template-columns: 2fr minmax(80px, 0.6fr) 1fr;
+.grade--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 @media (max-width: 560px) {
-  .grade--cidade {
-    grid-template-columns: 1fr 1fr;
+  .grade--2 {
+    grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Seções dentro do formulário */
+.secao__titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font: 700 0.95rem var(--fonte-titulo);
+}
+.secao__titulo svg,
+.botao-icone svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.divisor {
+  width: 100%;
+  margin: 4px 0;
+  border: 0;
+  border-top: 1px solid var(--nie-borda);
+}
+.secao-tipos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.secao-tipos__entrada {
+  display: flex;
+  gap: 8px;
+}
+.secao-tipos__entrada input,
+.entrada-linha {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 11px;
+  border: 1px solid var(--nie-borda);
+  border-radius: var(--raio);
+  background: var(--nie-superficie);
+  color: var(--nie-texto);
+  font: 500 14px var(--fonte);
+}
+.secao-tipos__entrada .botao {
+  min-height: 40px;
+  white-space: nowrap;
+}
+.tabela--compacta td {
+  padding: 8px 12px;
+  vertical-align: middle;
+}
+.tabela--compacta td:first-child,
+.tabela--compacta th:first-child {
+  width: 44px;
+  color: var(--nie-texto-2);
+}
+.coluna-acoes {
+  width: 96px;
+  text-align: right !important;
+  white-space: nowrap;
+}
+.botao-icone--perigo {
+  color: var(--nie-erro);
+}
+.vazio--pequeno {
+  padding: 14px;
+  font-size: 13px;
 }
 
 .filtros {

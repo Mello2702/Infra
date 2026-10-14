@@ -60,7 +60,7 @@ export async function render(el) {
     el.querySelector(".carregando").outerHTML = ui.vazio("Nenhum tipo de estabelecimento cadastrado ainda.");
     return;
   }
-  const linhas = tipos.map((t) => ({ ...t, unidades: unidades.filter((u) => u.tipo_id === t.id).length }));
+  const linhas = tipos.map((t) => ({ ...t, unidades: unidades.filter((u) => u.tipo_ids.includes(t.id)).length }));
   el.querySelector(".carregando").replaceWith(
     ui.tabela(COLUNAS, linhas, gerencia ? (linha) => formulario(linha, recarregar) : null),
   );

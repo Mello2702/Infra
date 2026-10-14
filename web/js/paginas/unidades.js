@@ -1,46 +1,51 @@
-// Cadastro de unidades atendidas pelo núcleo.
+// Cadastro de unidades atendidas pelo núcleo, com seus tipos de estabelecimento.
 import { UFS } from "../constantes.js";
-import { atualizar, excluir, inserir, listarTiposEstabelecimento, listarUnidades } from "../dados.js";
+import { excluir, listarTiposEstabelecimento, listarUnidades, salvarUnidade } from "../dados.js";
 import { temPapel } from "../estado.js";
+import { montarListaTipos, secaoTipos } from "../lista-tipos.js";
 import * as ui from "../ui.js";
 
 const COLUNAS = [
-  { campo: "nome", titulo: "Nome" },
-  { campo: "tipo", titulo: "Tipo de estabelecimento" },
+  { campo: "nome", titulo: "Nome fantasia" },
+  { campo: "tipos", titulo: "Tipos de estabelecimento", formato: (tipos) => tipos.join(", ") },
   { campo: "razao_social", titulo: "Razão social" },
+  { campo: "uge", titulo: "UGE" },
   { campo: "endereco", titulo: "Endereço" },
   { campo: "cidade", titulo: "Cidade" },
   { campo: "uf", titulo: "UF" },
-  { campo: "uge", titulo: "UGE" },
   { campo: "ativo", titulo: "Ativa", formato: (a) => (a ? "Sim" : "Não") },
 ];
 
-function formulario(registro, tipos, recarregar) {
+const ICONE_UNIDADE =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h10v17M15 9h4v12M3 21h18M8 8h4M8 12h4M8 16h4"/></svg>';
+
+function formulario(registro, catalogo, recarregar) {
   const novo = !registro;
   const r = registro ?? {};
-  // Tipos desativados só aparecem na unidade que já os usa.
-  const opcoesTipo = tipos.filter((t) => t.ativo || t.id === r.tipo_id).map((t) => [t.id, t.nome]);
-  ui.dialogo({
+  let editorTipos;
+
+  const janela = ui.dialogo({
     titulo: novo ? "Nova unidade" : `Editar: ${r.nome}`,
     textoSalvar: novo ? "Cadastrar" : "Salvar",
     campos: `
-      <div class="grade">
-        ${ui.campoTexto("nome", "Nome", r.nome, { obrigatorio: true })}
-        ${ui.campoSelect("tipo_id", "Tipo de estabelecimento", opcoesTipo, r.tipo_id, { vazio: "— Não definido —" })}
-      </div>
-      ${tipos.length ? "" : '<p class="legenda">Nenhum tipo de estabelecimento cadastrado. Cadastre em <a href="#/tipos">Tipos de estabelecimento</a>.</p>'}
-      ${ui.campoTexto("razao_social", "Razão social", r.razao_social)}
-      ${ui.campoTexto("endereco", "Endereço", r.endereco)}
-      <div class="grade grade--cidade">
-        ${ui.campoTexto("cidade", "Cidade", r.cidade)}
-        ${ui.campoSelect("uf", "UF", UFS.map((uf) => [uf, uf]), novo ? "SP" : r.uf, { vazio: "—" })}
+      <h3 class="secao__titulo">${ICONE_UNIDADE} Informações da unidade</h3>
+      <div class="grade grade--2">
+        ${ui.campoTexto("nome", "Nome fantasia", r.nome, { obrigatorio: true })}
+        ${ui.campoTexto("razao_social", "Razão social", r.razao_social)}
         ${ui.campoTexto("uge", "UGE", r.uge, { dica: "Código" })}
       </div>
-      ${ui.campoCheck("ativo", "Unidade ativa", r.ativo ?? true)}`,
+      ${ui.campoTexto("endereco", "Endereço", r.endereco)}
+      <div class="grade grade--2">
+        ${ui.campoTexto("cidade", "Cidade", r.cidade)}
+        ${ui.campoSelect("uf", "Estado (UF)", UFS.map((uf) => [uf, uf]), novo ? "SP" : r.uf, { vazio: "—" })}
+      </div>
+      ${ui.campoCheck("ativo", "Unidade ativa", r.ativo ?? true)}
+      <hr class="divisor">
+      ${secaoTipos(catalogo.filter((t) => t.ativo).map((t) => t.nome))}`,
     aoSalvar: async (f) => {
+      if (editorTipos.emEdicao()) return "Confirme ou cancele a edição do tipo antes de salvar.";
       const valores = {
         nome: ui.texto(f.get("nome")),
-        tipo_id: f.get("tipo_id") ? Number(f.get("tipo_id")) : null,
         razao_social: ui.texto(f.get("razao_social")),
         endereco: ui.texto(f.get("endereco")),
         cidade: ui.texto(f.get("cidade")),
@@ -48,16 +53,19 @@ function formulario(registro, tipos, recarregar) {
         uge: ui.texto(f.get("uge")),
         ativo: f.get("ativo") === "on",
       };
-      if (!valores.nome) return "Informe o nome da unidade.";
-      return novo
-        ? ui.gravar(() => inserir("unidades", valores), "Unidade cadastrada.", recarregar)
-        : ui.gravar(() => atualizar("unidades", r.id, valores), "Unidade atualizada.", recarregar);
+      if (!valores.nome) return "Informe o nome fantasia da unidade.";
+      return ui.gravar(
+        () => salvarUnidade(r.id, valores, editorTipos.valores()),
+        novo ? "Unidade cadastrada." : "Unidade atualizada.",
+        recarregar,
+      );
     },
     aoExcluir:
       !novo && temPapel("admin")
         ? () => ui.gravar(() => excluir("unidades", r.id), "Unidade excluída.", recarregar)
         : null,
   });
+  editorTipos = montarListaTipos(janela.querySelector("[data-tipos]"), r.tipos ?? []);
 }
 
 export async function render(el) {
@@ -67,9 +75,9 @@ export async function render(el) {
       "Unidades",
       gerencia ? '<button class="botao botao--primario" data-acao="nova" disabled>Nova unidade</button>' : "",
     ) + ui.CARREGANDO;
-  let unidades, tipos;
+  let unidades, catalogo;
   try {
-    [unidades, tipos] = await Promise.all([listarUnidades(), listarTiposEstabelecimento()]);
+    [unidades, catalogo] = await Promise.all([listarUnidades(), listarTiposEstabelecimento()]);
   } catch (erro) {
     el.querySelector(".carregando").outerHTML = ui.erroHTML(erro.message);
     return;
@@ -78,7 +86,7 @@ export async function render(el) {
   const botaoNova = el.querySelector('[data-acao="nova"]');
   if (botaoNova) {
     botaoNova.disabled = false;
-    botaoNova.addEventListener("click", () => formulario(null, tipos, recarregar));
+    botaoNova.addEventListener("click", () => formulario(null, catalogo, recarregar));
   }
 
   if (!unidades.length) {
@@ -86,6 +94,6 @@ export async function render(el) {
     return;
   }
   el.querySelector(".carregando").replaceWith(
-    ui.tabela(COLUNAS, unidades, gerencia ? (linha) => formulario(linha, tipos, recarregar) : null),
+    ui.tabela(COLUNAS, unidades, gerencia ? (linha) => formulario(linha, catalogo, recarregar) : null),
   );
 }

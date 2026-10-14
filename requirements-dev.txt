@@ -1,3 +1,4 @@
--r requirements.txt
+# Só para os testes automatizados do site (o site em si não usa Python).
 pytest>=8
+playwright>=1.48
 ruff>=0.6

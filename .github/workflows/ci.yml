@@ -6,6 +6,7 @@ on:
   pull_request:
 
 jobs:
+  # Abre o site num navegador de verdade, com o Supabase simulado (tests/conftest.py).
   testes:
     runs-on: ubuntu-latest
     steps:
@@ -15,22 +16,6 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
       - run: ruff check .
       - run: pytest
-
-  # Monta a mesma imagem usada no Cloudflare Containers e confere se o app sobe.
-  imagem:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: docker build -t nie-infra .
-      - name: App responde dentro do container
-        run: |
-          docker run -d --name app -p 8501:8501 \
-            -e SUPABASE_URL=https://exemplo.supabase.co -e SUPABASE_ANON_KEY=teste nie-infra
-          for i in $(seq 1 30); do
-            curl -fs http://localhost:8501/_stcore/health && exit 0
-            sleep 2
-          done
-          docker logs app
-          exit 1

@@ -1,7 +1,10 @@
 # Sistema de Gestão — Núcleo de Infraestrutura
 
-Aplicação web em Python (Streamlit) para o Núcleo de Infraestrutura, com banco de dados
-e autenticação no Supabase e integração contínua no GitHub.
+Site do Núcleo de Infraestrutura (marca **nie**), com banco de dados e login no Supabase,
+código no GitHub e publicação gratuita na Cloudflare.
+
+O site é estático (HTML, CSS e JavaScript, sem etapa de build): roda no navegador e fala direto
+com o Supabase. Quem decide o que cada pessoa pode ver ou alterar são as regras de RLS do banco.
 
 ## O que o sistema faz
 
@@ -11,6 +14,7 @@ e autenticação no Supabase e integração contínua no GitHub.
 - **Visitas** — agendamento e registro de visitas às unidades, com objetivo, relato e pendências.
 - **Unidades** — cadastro das unidades atendidas.
 - **Usuários** — definição do papel de cada pessoa (somente administradores).
+- **Minha conta** — dados do usuário e troca de senha.
 
 ### Papéis
 
@@ -24,95 +28,61 @@ e autenticação no Supabase e integração contínua no GitHub.
 | Cadastrar e editar unidades | | ✔ | ✔ |
 | Excluir unidades e gerenciar usuários | | | ✔ |
 
-Essas regras são aplicadas no próprio banco (RLS), não só na tela.
+## Estrutura
 
-## Configuração inicial
+| Caminho | Conteúdo |
+| --- | --- |
+| `web/index.html` | Página única do site |
+| `web/js/app.js` | Login, menu e navegação (rotas com `#`) |
+| `web/js/paginas/` | Uma página do sistema por arquivo |
+| `web/js/dados.js` | Leitura e gravação nas tabelas do Supabase |
+| `web/js/config.js` | URL e chave `anon` do projeto Supabase |
+| `web/css/estilo.css` | Visual nie (paleta e fontes em `web/assets/README.md`) |
+| `supabase/migrations/` | Schema do banco e regras de acesso (RLS) |
+| `worker/index.js`, `wrangler.jsonc` | Publicação na Cloudflare |
+| `tests/` | Testes do site num navegador real, com Supabase simulado |
 
-### 1. Supabase
+## Supabase
 
-1. Crie um projeto em <https://supabase.com/dashboard>.
-2. Aplique o schema, de uma destas formas:
-   - **CLI:** `supabase login`, depois `supabase link --project-ref <id-do-projeto>` e
-     `supabase db push`;
-   - **Painel:** cole o conteúdo de
-     [supabase/migrations/20261009120000_schema_inicial.sql](supabase/migrations/20261009120000_schema_inicial.sql)
-     no SQL Editor e execute.
-3. Em **Authentication → Sign In / Providers**, desative **Allow new users to sign up**,
-   para que só entrem pessoas cadastradas por você.
-4. Em **Authentication → Users → Add user**, crie o seu usuário (marque *Auto Confirm User*).
-   **O primeiro usuário criado vira administrador**; os seguintes entram como Técnico e o
-   papel é ajustado na página *Usuários* do sistema.
+1. Aplique o schema com `supabase link --project-ref <id>` e `supabase db push`, ou cole
+   [o SQL da migration](supabase/migrations/20261009120000_schema_inicial.sql) no SQL Editor.
+2. Em **Authentication → Sign In / Providers**, mantenha desativado *Allow new users to sign up*.
+3. Crie usuários em **Authentication → Users → Add user** (com *Auto Confirm User*).
+   **O primeiro usuário criado vira administrador**; os seguintes entram como Técnico e o papel
+   é ajustado na página *Usuários*.
 
-### 2. Rodar localmente
+A chave em `web/js/config.js` é a `anon`/`publishable`, feita para ficar no navegador. Nunca use
+ali a `service_role`.
+
+Para alterar o banco, crie uma migration nova com `supabase migration new <nome>`; o workflow
+[migrations.yml](.github/workflows/migrations.yml) a aplica quando chega à `main` (secrets
+`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID` e `SUPABASE_DB_PASSWORD`).
+
+## Publicação na Cloudflare (plano gratuito)
+
+O Worker `nie-infra` só entrega os arquivos de `web/`. Ele está ligado ao repositório pelo
+**Workers Builds**: cada push na `main` publica de novo. Configuração do build no painel da
+Cloudflare (**Workers & Pages → nie-infra → Settings → Builds**):
+
+- Build command: `npm install`
+- Deploy command: `npx wrangler deploy`
+
+## Rodar localmente
+
+Não precisa de instalação: sirva a pasta `web/` e abra no navegador.
 
 ```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
+python -m http.server 8000 --directory web
+# abra http://localhost:8000
+```
+
+## Testes
+
+```powershell
 pip install -r requirements-dev.txt
-Copy-Item .streamlit\secrets.toml.example .streamlit\secrets.toml
-# edite .streamlit\secrets.toml com a URL e a chave anon do projeto
-streamlit run app.py
-```
-
-A URL e a chave ficam em **Project Settings → API** no Supabase. Use a chave
-`anon`/`publishable` — nunca a `service_role`.
-
-### 3. GitHub
-
-```powershell
-git add .
-git commit -m "Versão inicial"
-git remote add origin https://github.com/<organizacao>/<repositorio>.git
-git push -u origin main
-```
-
-Dois workflows rodam no GitHub Actions:
-
-- **CI** ([.github/workflows/ci.yml](.github/workflows/ci.yml)) — `ruff` e `pytest` a cada push e
-  pull request.
-- **Migrations** ([.github/workflows/migrations.yml](.github/workflows/migrations.yml)) — aplica
-  no Supabase as migrations novas que chegam à `main`. Requer estes *secrets* do repositório
-  (**Settings → Secrets and variables → Actions**):
-
-  | Secret | Onde obter |
-  | --- | --- |
-  | `SUPABASE_ACCESS_TOKEN` | <https://supabase.com/dashboard/account/tokens> |
-  | `SUPABASE_PROJECT_ID` | Project Settings → General → Project ID |
-  | `SUPABASE_DB_PASSWORD` | Senha do banco definida ao criar o projeto |
-
-### 4. Deploy na Cloudflare
-
-O app roda no **Cloudflare Containers**: o Worker em [worker/index.js](worker/index.js) recebe os
-acessos e repassa tudo (inclusive o WebSocket do Streamlit) para um container montado a partir do
-[Dockerfile](Dockerfile). A configuração está em [wrangler.jsonc](wrangler.jsonc). Requer o plano
-**Workers Paid**.
-
-1. No painel da Cloudflare: **Workers & Pages → Create → Import a repository**, escolha
-   `Mello2702/Infra`, com nome do projeto `nie-infra`, comando de build `npm install` e comando de
-   deploy `npx wrangler deploy`.
-2. Em **Settings → Variables and Secrets** do Worker, crie o secret `SUPABASE_ANON_KEY` com a
-   chave anon do Supabase. A `SUPABASE_URL` já está em `wrangler.jsonc`.
-3. Cada push na `main` gera um novo deploy. O app fica em `https://nie-infra.<sua-conta>.workers.dev`.
-
-O container desliga após 30 minutos sem uso; o primeiro acesso depois disso leva alguns segundos.
-Há uma única instância, porque o Streamlit guarda as sessões em memória.
-
-## Desenvolvimento
-
-```powershell
+python -m playwright install chromium
 ruff check .
 pytest
 ```
 
-Os testes usam um cliente Supabase falso e não acessam a rede.
-
-| Pasta | Conteúdo |
-| --- | --- |
-| `app.py` | Ponto de entrada: login, menu e navegação |
-| `views/` | Uma página por arquivo |
-| `core/` | Cliente Supabase, autenticação, acesso a dados e utilitários de tela |
-| `supabase/migrations/` | Schema do banco e regras de acesso (RLS) |
-| `tests/` | Testes das páginas |
-
-Para alterar o banco, crie uma migration nova com `supabase migration new <nome>` em vez de
-editar uma já aplicada.
+Para usar o Edge já instalado em vez de baixar o Chromium: `$env:PW_CANAL = "msedge"`.

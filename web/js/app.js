@@ -16,7 +16,9 @@ const PAGINAS = [
   { rota: "equipamentos", titulo: "Equipamentos", modulo: equipamentos },
   { rota: "visitas", titulo: "Visitas", modulo: visitas },
   { rota: "unidades", titulo: "Unidades", modulo: unidades },
-  { rota: "tipos", titulo: "Tipos de estabelecimento", modulo: tipos },
+  // Fora do menu: os tipos são incluídos no próprio cadastro da unidade. A página
+  // segue acessível em #/tipos para renomear ou desativar tipos do catálogo.
+  { rota: "tipos", titulo: "Tipos de estabelecimento", modulo: tipos, oculta: true },
   { rota: "conta", titulo: "Minha conta", modulo: conta },
   { rota: "usuarios", titulo: "Usuários", modulo: usuarios, papeis: ["admin"] },
 ];
@@ -99,7 +101,7 @@ async function abrirSistema(idUsuario) {
 }
 
 function montarLayout() {
-  const links = PAGINAS.filter((p) => !p.papeis || temPapel(...p.papeis))
+  const links = PAGINAS.filter((p) => !p.oculta && (!p.papeis || temPapel(...p.papeis)))
     .map((p) => `<a href="#/${p.rota}" data-rota="${p.rota}">${esc(p.titulo)}</a>`)
     .join("");
   app.innerHTML = `

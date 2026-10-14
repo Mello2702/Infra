@@ -46,7 +46,6 @@ def test_tecnico_nao_acessa_usuarios(pagina):
         ("Equipamentos", "Inventário de equipamentos"),
         ("Visitas", "Visitas às unidades"),
         ("Unidades", "Unidades"),
-        ("Tipos de estabelecimento", "Tipos de estabelecimento"),
         ("Minha conta", "Minha conta"),
     ],
 )
@@ -281,9 +280,22 @@ def test_tecnico_so_consulta_unidades(pagina):
     expect(pagina.get_by_role("dialog")).to_have_count(0)
 
 
+def ir_para_tipos(pagina):
+    expect(pagina.get_by_role("heading", name="Painel")).to_be_visible()
+    pagina.goto(pagina.url.split("#")[0] + "#/tipos")
+
+
+def test_tipos_fora_do_menu_mas_acessivel_pelo_endereco(pagina):
+    entrar(pagina, ADMIN)
+    expect(pagina.get_by_role("heading", name="Painel")).to_be_visible()
+    expect(pagina.locator(".menu").get_by_role("link", name="Tipos de estabelecimento")).to_have_count(0)
+    ir_para_tipos(pagina)
+    expect(pagina.get_by_role("heading", name="Tipos de estabelecimento")).to_be_visible()
+
+
 def test_cadastro_de_tipo_de_estabelecimento(pagina, supabase):
     entrar(pagina, ADMIN)
-    pagina.get_by_role("link", name="Tipos de estabelecimento").click()
+    ir_para_tipos(pagina)
     linha_sede = pagina.get_by_role("row", name="Sede administrativa")
     expect(linha_sede.get_by_role("cell").nth(2)).to_have_text("1")  # unidades que usam o tipo
     pagina.get_by_role("button", name="Novo tipo").click()
@@ -299,6 +311,6 @@ def test_cadastro_de_tipo_de_estabelecimento(pagina, supabase):
 
 def test_tecnico_so_consulta_tipos(pagina):
     entrar(pagina, TECNICO)
-    pagina.get_by_role("link", name="Tipos de estabelecimento").click()
+    ir_para_tipos(pagina)
     expect(pagina.get_by_role("cell", name="Posto de atendimento")).to_be_visible()
     expect(pagina.get_by_role("button", name="Novo tipo")).to_have_count(0)

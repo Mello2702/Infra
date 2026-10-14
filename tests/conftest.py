@@ -32,11 +32,11 @@ DADOS = {
         {
             "id": 1,
             "nome": "Sede",
-            "sigla": "SD",
+            "razao_social": None,
             "endereco": None,
-            "municipio": "São Paulo",
-            "responsavel": None,
-            "telefone": None,
+            "cidade": "São Paulo",
+            "uf": "SP",
+            "uge": None,
             "ativo": True,
         }
     ],

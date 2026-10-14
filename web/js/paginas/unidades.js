@@ -1,15 +1,16 @@
 // Cadastro de unidades atendidas pelo núcleo.
+import { UFS } from "../constantes.js";
 import { atualizar, excluir, inserir, listarUnidades } from "../dados.js";
 import { temPapel } from "../estado.js";
 import * as ui from "../ui.js";
 
 const COLUNAS = [
   { campo: "nome", titulo: "Nome" },
-  { campo: "sigla", titulo: "Sigla" },
-  { campo: "municipio", titulo: "Município" },
+  { campo: "razao_social", titulo: "Razão social" },
   { campo: "endereco", titulo: "Endereço" },
-  { campo: "responsavel", titulo: "Responsável" },
-  { campo: "telefone", titulo: "Telefone" },
+  { campo: "cidade", titulo: "Cidade" },
+  { campo: "uf", titulo: "UF" },
+  { campo: "uge", titulo: "UGE" },
   { campo: "ativo", titulo: "Ativa", formato: (a) => (a ? "Sim" : "Não") },
 ];
 
@@ -22,21 +23,23 @@ function formulario(registro, recarregar) {
     campos: `
       <div class="grade">
         ${ui.campoTexto("nome", "Nome", r.nome, { obrigatorio: true })}
-        ${ui.campoTexto("sigla", "Sigla", r.sigla)}
-        ${ui.campoTexto("municipio", "Município", r.municipio)}
-        ${ui.campoTexto("endereco", "Endereço", r.endereco)}
-        ${ui.campoTexto("responsavel", "Responsável local", r.responsavel)}
-        ${ui.campoTexto("telefone", "Telefone", r.telefone, { tipo: "tel" })}
+        ${ui.campoTexto("razao_social", "Razão social", r.razao_social)}
+      </div>
+      ${ui.campoTexto("endereco", "Endereço", r.endereco)}
+      <div class="grade grade--cidade">
+        ${ui.campoTexto("cidade", "Cidade", r.cidade)}
+        ${ui.campoSelect("uf", "UF", UFS.map((uf) => [uf, uf]), novo ? "SP" : r.uf, { vazio: "—" })}
+        ${ui.campoTexto("uge", "UGE", r.uge, { dica: "Código" })}
       </div>
       ${ui.campoCheck("ativo", "Unidade ativa", r.ativo ?? true)}`,
     aoSalvar: async (f) => {
       const valores = {
         nome: ui.texto(f.get("nome")),
-        sigla: ui.texto(f.get("sigla")),
-        municipio: ui.texto(f.get("municipio")),
+        razao_social: ui.texto(f.get("razao_social")),
         endereco: ui.texto(f.get("endereco")),
-        responsavel: ui.texto(f.get("responsavel")),
-        telefone: ui.texto(f.get("telefone")),
+        cidade: ui.texto(f.get("cidade")),
+        uf: f.get("uf") || null,
+        uge: ui.texto(f.get("uge")),
         ativo: f.get("ativo") === "on",
       };
       if (!valores.nome) return "Informe o nome da unidade.";

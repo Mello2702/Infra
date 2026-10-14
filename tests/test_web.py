@@ -150,11 +150,56 @@ def test_admin_nao_altera_proprio_papel(pagina):
 def test_texto_do_banco_e_escapado(pagina):
     from conftest import DADOS
 
-    DADOS["unidades"][0]["responsavel"] = "<img src=x onerror=alert(1)>"
+    DADOS["unidades"][0]["razao_social"] = "<img src=x onerror=alert(1)>"
     try:
         entrar(pagina, ADMIN)
         pagina.get_by_role("link", name="Unidades").click()
         expect(pagina.get_by_role("cell", name="<img src=x onerror=alert(1)>")).to_be_visible()
         expect(pagina.locator("td img")).to_have_count(0)
     finally:
-        DADOS["unidades"][0]["responsavel"] = None
+        DADOS["unidades"][0]["razao_social"] = None
+
+
+def test_cadastro_de_unidade_grava_todos_os_campos(pagina, supabase):
+    entrar(pagina, ADMIN)
+    pagina.get_by_role("link", name="Unidades").click()
+    pagina.get_by_role("button", name="Nova unidade").click()
+    janela = pagina.get_by_role("dialog")
+    expect(janela.get_by_label("UF")).to_have_value("SP")
+    janela.get_by_label("Nome").fill("Poupatempo Sé")
+    janela.get_by_label("Razão social").fill("  Companhia de Processamento de Dados ")
+    janela.get_by_label("Endereço").fill("Praça do Carmo, s/n")
+    janela.get_by_label("Cidade").fill("São Paulo")
+    janela.get_by_label("UF").select_option("SP")
+    janela.get_by_label("UGE").fill("380101")
+    janela.get_by_role("button", name="Cadastrar").click()
+    expect(janela).to_have_count(0)
+    metodo, tabela, valores = supabase.gravacoes[-1]
+    assert (metodo, tabela) == ("POST", "unidades")
+    assert valores == {
+        "nome": "Poupatempo Sé",
+        "razao_social": "Companhia de Processamento de Dados",
+        "endereco": "Praça do Carmo, s/n",
+        "cidade": "São Paulo",
+        "uf": "SP",
+        "uge": "380101",
+        "ativo": True,
+    }
+
+
+def test_unidade_sem_nome_nao_grava(pagina, supabase):
+    entrar(pagina, ADMIN)
+    pagina.get_by_role("link", name="Unidades").click()
+    pagina.get_by_role("button", name="Nova unidade").click()
+    pagina.get_by_role("dialog").get_by_role("button", name="Cadastrar").click()
+    expect(pagina.get_by_role("dialog")).to_be_visible()
+    assert supabase.gravacoes == []
+
+
+def test_tecnico_so_consulta_unidades(pagina):
+    entrar(pagina, TECNICO)
+    pagina.get_by_role("link", name="Unidades").click()
+    expect(pagina.get_by_role("cell", name="São Paulo")).to_be_visible()
+    expect(pagina.get_by_role("button", name="Nova unidade")).to_have_count(0)
+    pagina.get_by_role("row", name="Sede").click()
+    expect(pagina.get_by_role("dialog")).to_have_count(0)

@@ -328,6 +328,15 @@ a {
   gap: 14px;
 }
 
+.grade--cidade {
+  grid-template-columns: 2fr minmax(80px, 0.6fr) 1fr;
+}
+@media (max-width: 560px) {
+  .grade--cidade {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .filtros {
   display: grid;
   grid-template-columns: 2fr repeat(3, minmax(140px, 1fr));

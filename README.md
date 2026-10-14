@@ -79,10 +79,14 @@ python -m http.server 8000 --directory web
 ## Testes
 
 ```powershell
-pip install -r requirements-dev.txt
+pip install -r tests/requirements.txt
 python -m playwright install chromium
 ruff check .
 pytest
 ```
 
 Para usar o Edge já instalado em vez de baixar o Chromium: `$env:PW_CANAL = "msedge"`.
+
+Não coloque `pyproject.toml` nem `requirements.txt` na raiz: o build da Cloudflare trata o
+projeto como pacote Python ao encontrá-los e falha. Por isso as dependências de teste ficam em
+`tests/requirements.txt` e as configurações em `pytest.ini` e `ruff.toml`.

@@ -280,37 +280,10 @@ def test_tecnico_so_consulta_unidades(pagina):
     expect(pagina.get_by_role("dialog")).to_have_count(0)
 
 
-def ir_para_tipos(pagina):
-    expect(pagina.get_by_role("heading", name="Painel")).to_be_visible()
-    pagina.goto(pagina.url.split("#")[0] + "#/tipos")
-
-
-def test_tipos_fora_do_menu_mas_acessivel_pelo_endereco(pagina):
+def test_pagina_de_tipos_nao_existe_mais(pagina):
     entrar(pagina, ADMIN)
     expect(pagina.get_by_role("heading", name="Painel")).to_be_visible()
     expect(pagina.locator(".menu").get_by_role("link", name="Tipos de estabelecimento")).to_have_count(0)
-    ir_para_tipos(pagina)
-    expect(pagina.get_by_role("heading", name="Tipos de estabelecimento")).to_be_visible()
-
-
-def test_cadastro_de_tipo_de_estabelecimento(pagina, supabase):
-    entrar(pagina, ADMIN)
-    ir_para_tipos(pagina)
-    linha_sede = pagina.get_by_role("row", name="Sede administrativa")
-    expect(linha_sede.get_by_role("cell").nth(2)).to_have_text("1")  # unidades que usam o tipo
-    pagina.get_by_role("button", name="Novo tipo").click()
-    janela = pagina.get_by_role("dialog")
-    janela.get_by_label("Nome").fill(" Data center ")
-    janela.get_by_label("Descrição").fill("Sala de servidores")
-    janela.get_by_role("button", name="Cadastrar").click()
-    expect(janela).to_have_count(0)
-    metodo, tabela, valores = supabase.gravacoes[-1]
-    assert (metodo, tabela) == ("POST", "tipos_estabelecimento")
-    assert valores == {"nome": "Data center", "descricao": "Sala de servidores", "ativo": True}
-
-
-def test_tecnico_so_consulta_tipos(pagina):
-    entrar(pagina, TECNICO)
-    ir_para_tipos(pagina)
-    expect(pagina.get_by_role("cell", name="Posto de atendimento")).to_be_visible()
-    expect(pagina.get_by_role("button", name="Novo tipo")).to_have_count(0)
+    # Endereço antigo leva ao painel.
+    pagina.goto(pagina.url.split("#")[0] + "#/tipos")
+    expect(pagina.get_by_role("heading", name="Painel")).to_be_visible()

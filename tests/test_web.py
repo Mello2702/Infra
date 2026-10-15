@@ -31,6 +31,17 @@ def test_login_sobrevive_a_recarregar(pagina):
     expect(pagina.get_by_role("heading", name="Painel")).to_be_visible()
 
 
+def test_atalhos_para_minha_area_e_sei(pagina):
+    entrar(pagina, TECNICO)
+    acessos = pagina.get_by_role("navigation", name="Acessos externos")
+    for nome, url in [("Minha Área SP", "https://minhaarea.sp.gov.br/"), ("SEI-SP", "https://sei.sp.gov.br/sei/")]:
+        link = acessos.get_by_role("link", name=nome)
+        expect(link).to_have_attribute("href", url)
+        # Abre em aba nova sem dar à página externa acesso a esta (window.opener).
+        expect(link).to_have_attribute("target", "_blank")
+        expect(link).to_have_attribute("rel", "noopener noreferrer")
+
+
 def test_tecnico_nao_acessa_usuarios(pagina):
     entrar(pagina, TECNICO)
     expect(pagina.get_by_role("heading", name="Painel")).to_be_visible()

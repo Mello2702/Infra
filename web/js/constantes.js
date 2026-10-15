@@ -1,6 +1,13 @@
 // Listas de valores usadas nos formulários. As chaves dos objetos são gravadas no banco.
 
-export const PAPEIS = { admin: "Administrador", gestor: "Gestor", tecnico: "Técnico" };
+// Atalhos para sistemas externos, abertos numa aba nova. Cada pessoa entra
+// com o próprio login: o sistema nie não recebe nem guarda essas credenciais.
+export const ACESSOS_EXTERNOS = [
+  { titulo: "Minha Área SP", url: "https://minhaarea.sp.gov.br/" },
+  { titulo: "SEI-SP", url: "https://sei.sp.gov.br/sei/" },
+];
+
+export const PAPEIS ={ admin: "Administrador", gestor: "Gestor", tecnico: "Técnico" };
 
 export const STATUS_EQUIPAMENTO = {
   em_uso: "Em uso",

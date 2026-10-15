@@ -12,9 +12,7 @@ com o Supabase. Quem decide o que cada pessoa pode ver ou alterar são as regras
 - **Equipamentos** — inventário com patrimônio, tipo, marca/modelo, nº de série, unidade,
   localização e status; busca, filtros e exportação em CSV.
 - **Visitas** — agendamento e registro de visitas às unidades, com objetivo, relato e pendências.
-- **Processos** — processos do SEI e suas notas de empenho (várias por processo), digitadas ou
-  trazidas do SEI pelo script do Tampermonkey (veja abaixo).
-- **Unidades** — cadastro das unidades atendidas, com seus tipos de estabelecimento.
+- **Unidades** — cadastro das unidades atendidas.
 - **Usuários** — definição do papel de cada pessoa (somente administradores).
 - **Minha conta** — dados do usuário e troca de senha.
 
@@ -59,18 +57,6 @@ ali a `service_role`.
 Para alterar o banco, crie uma migration nova com `supabase migration new <nome>`; o workflow
 [migrations.yml](.github/workflows/migrations.yml) a aplica quando chega à `main` (secrets
 `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_ID` e `SUPABASE_DB_PASSWORD`).
-
-## Notas de empenho a partir do SEI
-
-O script [web/ferramentas/sei-nota-empenho.user.js](web/ferramentas/sei-nota-empenho.user.js)
-roda no Tampermonkey, dentro do SEI-SP já logado: pesquisa um processo, lê na árvore os PDFs
-"Nota de Empenho" e mostra os números. O botão **Copiar para o nie** copia o resultado; no
-sistema, **Processos → Colar do SEI** cadastra o processo (se for novo) e acrescenta as notas
-que faltam. O sistema nunca recebe o login do SEI.
-
-Para instalar: extensão Tampermonkey no Edge ou Chrome e, na página Processos, o link
-"instale o script". Notas de empenho são gravadas sem espaços e em maiúsculas
-(`2026 ne 000123` → `2026NE000123`).
 
 ## Publicação na Cloudflare (plano gratuito)
 

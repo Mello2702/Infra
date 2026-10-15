@@ -1,10 +1,9 @@
 // Ponto de entrada: login, menu e navegação entre as páginas (rotas com #).
-import { ACESSOS_EXTERNOS, PAPEIS } from "./constantes.js";
+import { PAPEIS } from "./constantes.js";
 import { sessao, temPapel } from "./estado.js";
 import * as conta from "./paginas/conta.js";
 import * as equipamentos from "./paginas/equipamentos.js";
 import * as painel from "./paginas/painel.js";
-import * as processos from "./paginas/processos.js";
 import * as unidades from "./paginas/unidades.js";
 import * as usuarios from "./paginas/usuarios.js";
 import * as visitas from "./paginas/visitas.js";
@@ -15,7 +14,6 @@ const PAGINAS = [
   { rota: "painel", titulo: "Painel", modulo: painel },
   { rota: "equipamentos", titulo: "Equipamentos", modulo: equipamentos },
   { rota: "visitas", titulo: "Visitas", modulo: visitas },
-  { rota: "processos", titulo: "Processos", modulo: processos },
   { rota: "unidades", titulo: "Unidades", modulo: unidades },
   { rota: "conta", titulo: "Minha conta", modulo: conta },
   { rota: "usuarios", titulo: "Usuários", modulo: usuarios, papeis: ["admin"] },
@@ -107,13 +105,6 @@ function montarLayout() {
       <aside class="lateral">
         ${marca(true)}
         <nav class="menu" aria-label="Menu principal">${links}</nav>
-        <nav class="acessos" aria-label="Acessos externos">
-          <p class="acessos__titulo">Acessos</p>
-          ${ACESSOS_EXTERNOS.map(
-            (a) => `<a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer">${esc(a.titulo)}
-              <span class="acessos__seta" aria-hidden="true">↗</span><span class="visualmente-oculto"> (abre em nova aba)</span></a>`,
-          ).join("")}
-        </nav>
         <div class="lateral__rodape">
           <p class="lateral__usuario"><span data-usuario-nome>${esc(sessao.usuario.nome)}</span>
             · ${esc(PAPEIS[sessao.usuario.papel])}</p>

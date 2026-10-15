@@ -2,7 +2,7 @@
 import { UFS } from "../constantes.js";
 import { excluir, listarTiposEstabelecimento, listarUnidades, salvarUnidade } from "../dados.js";
 import { temPapel } from "../estado.js";
-import { montarLista, secaoLista } from "../lista-editavel.js";
+import { montarListaTipos, secaoTipos } from "../lista-tipos.js";
 import * as ui from "../ui.js";
 
 const ICONE_UNIDADE =
@@ -72,14 +72,7 @@ function formulario(registro, catalogo, recarregar) {
       </div>
       ${ui.campoCheck("ativo", "Unidade ativa", r.ativo ?? true)}
       <hr class="divisor">
-      ${secaoLista({
-        chave: "tipos",
-        titulo: "Tipos de estabelecimento",
-        descricao: "Adicione os tipos de estabelecimento da unidade. Um tipo novo entra também no catálogo.",
-        rotulo: "Tipo de estabelecimento",
-        dica: "Digite o tipo de estabelecimento…",
-        sugestoes: catalogo.filter((t) => t.ativo).map((t) => t.nome),
-      })}`,
+      ${secaoTipos(catalogo.filter((t) => t.ativo).map((t) => t.nome))}`,
     aoSalvar: async (f) => {
       if (editorTipos.emEdicao()) return "Confirme ou cancele a edição do tipo antes de salvar.";
       const valores = {
@@ -103,10 +96,7 @@ function formulario(registro, catalogo, recarregar) {
         ? () => ui.gravar(() => excluir("unidades", r.id), "Unidade excluída.", recarregar)
         : null,
   });
-  editorTipos = montarLista(janela.querySelector("[data-tipos]"), r.tipos ?? [], {
-    rotulo: "Tipo de estabelecimento",
-    nome: "tipo",
-  });
+  editorTipos = montarListaTipos(janela.querySelector("[data-tipos]"), r.tipos ?? []);
 }
 
 export async function render(el) {

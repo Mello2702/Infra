@@ -1,6 +1,6 @@
-// Editor de lista dentro de um formulário: campo para digitar (com sugestões
-// opcionais) + botão Adicionar, e tabela com editar/remover em cada linha.
-// Usado nos tipos de estabelecimento da unidade e nas notas de empenho do processo.
+// Editor da lista de tipos de estabelecimento de uma unidade, dentro do
+// formulário: campo para digitar (com sugestões do catálogo) + botão
+// Adicionar, e tabela com editar/remover em cada linha.
 import { esc } from "./ui.js";
 
 const ICONE_EDITAR =
@@ -12,71 +12,56 @@ const ICONE_CANCELAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 
 
 let contador = 0;
 
-/**
- * HTML da seção; depois de inserido na página, chame `montarLista`.
- * `chave` vira o atributo data-<chave> da seção.
- */
-export function secaoLista({ chave, titulo, descricao, rotulo, dica, sugestoes = [] }) {
-  const lista = `sugestoes-${chave}-${++contador}`;
+/** HTML da seção; depois de inserido na página, chame `montarListaTipos`. */
+export function secaoTipos(sugestoes) {
+  const lista = `sugestoes-tipos-${++contador}`;
   return `
-    <section class="secao-lista" data-${chave}>
-      <h3 class="secao__titulo">${esc(titulo)}</h3>
-      ${descricao ? `<p class="legenda">${esc(descricao)}</p>` : ""}
-      <div class="secao-lista__entrada">
-        <input type="text" aria-label="${esc(rotulo)}" placeholder="${esc(dica)}"
-          ${sugestoes.length ? `list="${lista}"` : ""} data-novo>
+    <section class="secao-tipos" data-tipos>
+      <h3 class="secao__titulo">Tipos de estabelecimento</h3>
+      <p class="legenda">Adicione os tipos de estabelecimento da unidade. Um tipo novo entra também no catálogo.</p>
+      <div class="secao-tipos__entrada">
+        <input type="text" aria-label="Tipo de estabelecimento" placeholder="Digite o tipo de estabelecimento…"
+          list="${lista}" data-novo>
         <button type="button" class="botao" data-adicionar disabled>+ Adicionar</button>
       </div>
-      ${sugestoes.length ? `<datalist id="${lista}">${sugestoes.map((s) => `<option value="${esc(s)}">`).join("")}</datalist>` : ""}
-      <p class="alerta alerta--erro" data-erro-lista hidden></p>
+      <datalist id="${lista}">${sugestoes.map((s) => `<option value="${esc(s)}">`).join("")}</datalist>
+      <p class="alerta alerta--erro" data-erro-tipo hidden></p>
       <div data-linhas></div>
     </section>`;
 }
 
-/**
- * Liga os eventos da seção e devolve `{ valores(), emEdicao() }`.
- *
- * - `rotulo`: título da coluna (ex.: "Tipo de estabelecimento");
- * - `nome`: como o item é chamado nas mensagens (ex.: "tipo", "empenho");
- * - `normalizar`: ajusta o texto digitado antes de entrar na lista;
- * - `chaveComparacao`: forma usada para detectar itens repetidos.
- */
-export function montarLista(
-  secao,
-  iniciais,
-  { rotulo, nome, normalizar = (t) => t.trim(), chaveComparacao = (t) => t.toLowerCase() },
-) {
+/** Liga os eventos da seção e devolve `{ valores() }` com a lista atual de nomes. */
+export function montarListaTipos(secao, iniciais) {
   const itens = [...iniciais];
   let editando = null; // posição da linha em edição
   const entrada = secao.querySelector("[data-novo]");
   const botao = secao.querySelector("[data-adicionar]");
-  const erro = secao.querySelector("[data-erro-lista]");
+  const erro = secao.querySelector("[data-erro-tipo]");
   const linhas = secao.querySelector("[data-linhas]");
-  const listaSugestoes = entrada.getAttribute("list");
 
   const mostrarErro = (texto) => {
     erro.textContent = texto ?? "";
     erro.hidden = !texto;
   };
-  const repetido = (valor, ignorar = -1) =>
-    itens.some((item, i) => i !== ignorar && chaveComparacao(item) === chaveComparacao(valor));
+  const repetido = (nome, ignorar = -1) =>
+    itens.some((item, i) => i !== ignorar && item.toLowerCase() === nome.toLowerCase());
 
   function desenhar() {
     if (!itens.length) {
-      linhas.innerHTML = `<p class="vazio vazio--pequeno">Nenhum ${esc(nome)} adicionado.</p>`;
+      linhas.innerHTML = '<p class="vazio vazio--pequeno">Nenhum tipo adicionado.</p>';
       return;
     }
     linhas.innerHTML = `
       <div class="tabela-rolagem">
         <table class="tabela tabela--compacta">
-          <thead><tr><th scope="col">#</th><th scope="col">${esc(rotulo)}</th>
+          <thead><tr><th scope="col">#</th><th scope="col">Tipo de estabelecimento</th>
             <th scope="col" class="coluna-acoes">Ações</th></tr></thead>
           <tbody>${itens
             .map((item, i) =>
               i === editando
                 ? `<tr><td>${i + 1}</td>
                     <td><input type="text" class="entrada-linha" value="${esc(item)}"
-                      aria-label="Editar ${esc(nome)} ${i + 1}"${listaSugestoes ? ` list="${listaSugestoes}"` : ""} data-edicao></td>
+                      aria-label="Editar tipo ${i + 1}" list="${entrada.getAttribute("list")}" data-edicao></td>
                     <td class="coluna-acoes">
                       <button type="button" class="botao-icone" data-confirmar aria-label="Confirmar">${ICONE_OK}</button>
                       <button type="button" class="botao-icone" data-cancelar aria-label="Cancelar edição">${ICONE_CANCELAR}</button>
@@ -95,10 +80,10 @@ export function montarLista(
   }
 
   function adicionar() {
-    const valor = normalizar(entrada.value);
-    if (!valor) return;
-    if (repetido(valor)) return mostrarErro(`Esse ${nome} já foi adicionado.`);
-    itens.push(valor);
+    const nome = entrada.value.trim();
+    if (!nome) return;
+    if (repetido(nome)) return mostrarErro("Esse tipo já foi adicionado.");
+    itens.push(nome);
     entrada.value = "";
     botao.disabled = true;
     mostrarErro(null);
@@ -107,10 +92,11 @@ export function montarLista(
   }
 
   function confirmarEdicao() {
-    const valor = normalizar(linhas.querySelector("[data-edicao]").value);
-    if (!valor) return mostrarErro(`O ${nome} não pode ficar vazio. Use a lixeira para remover.`);
-    if (repetido(valor, editando)) return mostrarErro(`Esse ${nome} já foi adicionado.`);
-    itens[editando] = valor;
+    const campo = linhas.querySelector("[data-edicao]");
+    const nome = campo.value.trim();
+    if (!nome) return mostrarErro("O tipo não pode ficar vazio. Use a lixeira para remover.");
+    if (repetido(nome, editando)) return mostrarErro("Esse tipo já foi adicionado.");
+    itens[editando] = nome;
     editando = null;
     mostrarErro(null);
     desenhar();
@@ -126,7 +112,7 @@ export function montarLista(
     botao.disabled = !entrada.value.trim();
     mostrarErro(null);
   });
-  // Enter adiciona o item em vez de enviar o formulário inteiro.
+  // Enter adiciona o tipo em vez de enviar o formulário inteiro.
   entrada.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -168,7 +154,7 @@ export function montarLista(
   return {
     /** Lista final; inclui o que ficou digitado sem clicar em Adicionar. */
     valores() {
-      const pendente = normalizar(entrada.value);
+      const pendente = entrada.value.trim();
       return pendente && !repetido(pendente) ? [...itens, pendente] : [...itens];
     },
     /** Há uma linha em edição ainda não confirmada? */

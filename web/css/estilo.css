@@ -174,63 +174,6 @@ a {
 .lateral__rodape {
   margin-top: auto;
 }
-.acessos {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.acessos__titulo {
-  margin: 0 0 4px;
-  padding: 0 12px;
-  color: var(--nie-texto-2);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.acessos a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 7px 12px;
-  border-radius: var(--raio);
-  color: var(--nie-texto-2);
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-}
-.acessos a:hover {
-  color: var(--nie-texto);
-  background: var(--nie-superficie);
-}
-.acessos__seta {
-  color: var(--nie-destaque);
-}
-@media (max-width: 760px) {
-  .acessos {
-    order: 4;
-    flex: 1 0 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px 12px;
-  }
-  .acessos__titulo {
-    display: none;
-  }
-  .acessos a {
-    padding: 4px 0;
-    gap: 6px;
-    font-size: 13px;
-  }
-}
-.visualmente-oculto {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
 .lateral__usuario {
   margin: 0 0 10px;
   font-size: 13px;
@@ -418,16 +361,16 @@ a {
   border: 0;
   border-top: 1px solid var(--nie-borda);
 }
-.secao-lista {
+.secao-tipos {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.secao-lista__entrada {
+.secao-tipos__entrada {
   display: flex;
   gap: 8px;
 }
-.secao-lista__entrada input,
+.secao-tipos__entrada input,
 .entrada-linha {
   flex: 1;
   min-width: 0;
@@ -440,7 +383,7 @@ a {
   color: var(--nie-texto);
   font: 500 14px var(--fonte);
 }
-.secao-lista__entrada .botao {
+.secao-tipos__entrada .botao {
   min-height: 40px;
   white-space: nowrap;
 }
@@ -665,26 +608,6 @@ a {
 .selo--alerta {
   border-color: rgba(232, 102, 74, 0.5);
   color: var(--nie-erro);
-}
-
-/* Caixa de ajuda recolhível */
-.ajuda {
-  padding: 10px 14px;
-  border: 1px solid var(--nie-borda);
-  border-radius: var(--raio);
-  background: rgba(22, 35, 58, 0.6);
-  font-size: 14px;
-}
-.ajuda summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-.ajuda ol {
-  margin: 10px 0 2px;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
 }
 
 /* Painel */

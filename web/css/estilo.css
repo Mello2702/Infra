@@ -610,50 +610,6 @@ a {
   color: var(--nie-erro);
 }
 
-/* Processos SEI */
-.ajuda {
-  padding: 10px 14px;
-  border: 1px solid var(--nie-borda);
-  border-radius: var(--raio);
-  background: rgba(22, 35, 58, 0.6);
-  font-size: 14px;
-}
-.ajuda summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-.ajuda ol {
-  margin: 10px 0 2px;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.ajuda code,
-.legenda code {
-  padding: 1px 6px;
-  border-radius: 4px;
-  background: var(--nie-fundo);
-  font-size: 13px;
-}
-label.botao {
-  cursor: pointer;
-}
-.secao-sei {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.secao-sei__topo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.aviso--erro {
-  border-left-color: var(--nie-erro);
-}
-
 /* Painel */
 .metricas {
   display: grid;

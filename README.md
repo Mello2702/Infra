@@ -12,9 +12,7 @@ com o Supabase. Quem decide o que cada pessoa pode ver ou alterar são as regras
 - **Equipamentos** — inventário com patrimônio, tipo, marca/modelo, nº de série, unidade,
   localização e status; busca, filtros e exportação em CSV.
 - **Visitas** — agendamento e registro de visitas às unidades, com objetivo, relato e pendências.
-- **Processos SEI** — processos do SEI-SP acompanhados, com andamentos e documentos importados
-  da ferramenta de consulta (veja abaixo).
-- **Unidades** — cadastro das unidades atendidas, com seus tipos de estabelecimento.
+- **Unidades** — cadastro das unidades atendidas.
 - **Usuários** — definição do papel de cada pessoa (somente administradores).
 - **Minha conta** — dados do usuário e troca de senha.
 
@@ -68,23 +66,6 @@ Cloudflare (**Workers & Pages → nie-infra → Settings → Builds**):
 
 - Build command: `npm install`
 - Deploy command: `npx wrangler deploy`
-
-## Consulta de processos no SEI-SP
-
-A Pesquisa Pública do SEI exige CAPTCHA e não aceita consultas vindas de outro site, então o
-sistema não busca os dados sozinho. A ferramenta
-[ferramentas/sei/sei_busca_processo.py](ferramentas/sei/sei_busca_processo.py) faz a consulta no
-seu computador e gera um arquivo para importar:
-
-```powershell
-pip install -r ferramentas/sei/requirements.txt
-python ferramentas/sei/sei_busca_processo.py 024.00120830/2026-12        # um ou mais números
-python ferramentas/sei/sei_busca_processo.py --arquivo numeros.txt       # um número por linha
-```
-
-O navegador (Edge) abre; para cada processo você digita o CAPTCHA e clica em **Pesquisar**. No
-fim, em **Processos SEI → Importar resultado**, escolha `resultado_sei/processos.json`. Processos
-já cadastrados recebem os dados novos e mantêm unidade e descrição.
 
 ## Rodar localmente
 

@@ -83,6 +83,34 @@ export async function listarVisitas() {
   return achatar(achatar(linhas, "unidades", "unidade"), "perfis", "tecnico");
 }
 
+/** Número de nota de empenho como o banco guarda: sem espaços e em maiúsculas. */
+export const normalizarEmpenho = (texto) => (texto ?? "").replace(/\s+/g, "").toUpperCase();
+
+export async function listarProcessos() {
+  const linhas = achatar(
+    await listar("processos", "*, unidades(nome), empenhos(numero, posicao)", "numero"),
+    "unidades",
+    "unidade",
+  );
+  for (const processo of linhas) {
+    processo.empenhos = (processo.empenhos ?? []).sort((a, b) => a.posicao - b.posicao).map((e) => e.numero);
+  }
+  return linhas;
+}
+
+/** Grava o processo e a lista completa de notas de empenho numa única transação no banco. */
+export async function salvarProcesso(id, valores, empenhos) {
+  await executar(sb.rpc("salvar_processo", { p_id: id ?? null, p_dados: valores, p_empenhos: empenhos }));
+}
+
+/**
+ * Acrescenta notas de empenho a um processo (criado se ainda não existir).
+ * Devolve { processo_id, novo_processo, adicionados }.
+ */
+export async function importarEmpenhos(numeroProcesso, empenhos) {
+  return executar(sb.rpc("importar_empenhos", { p_numero: numeroProcesso, p_empenhos: empenhos }));
+}
+
 export async function inserir(tabela, valores) {
   await executar(sb.from(tabela).insert(valores));
 }

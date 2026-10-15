@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><title>SEI falso - Árvore (testes)</title></head>
+<body>
+  <!-- Mesma estrutura de âncoras e ícones da árvore de documentos do SEI. -->
+  <div>
+    <a id="anchorImg101"><img id="icon101" src="/svg/pdf.svg" alt="PDF"></a>
+    <a id="anchor101" href="doc101.html">Nota de Empenho 2026NE000123 (45678901)</a>
+  </div>
+  <div>
+    <!-- Sem número no formato SIAFI/SIAFEM: cai no rótulo do documento. -->
+    <a id="anchorImg102"><img id="icon102" src="/svg/pdf.svg" alt="PDF"></a>
+    <a id="anchor102" href="doc102.html">Nota de Empenho 55/2026 (45678902)</a>
+  </div>
+  <div>
+    <!-- Formato SIAFEM, com 5 dígitos após "NE". -->
+    <a id="anchorImg103"><img id="icon103" src="/svg/pdf.svg" alt="PDF"></a>
+    <a id="anchor103" href="doc103.html">Nota de Empenho 2026 NE 00077</a>
+  </div>
+  <div>
+    <!-- Documento interno (não é PDF): ignorado. -->
+    <a id="anchorImg104"><img id="icon104" src="/svg/documento_interno.svg" alt="Documento"></a>
+    <a id="anchor104" href="doc104.html">Nota de Empenho 2026NE000999</a>
+  </div>
+  <div>
+    <a id="anchorImg105"><img id="icon105" src="/svg/pdf.svg" alt="PDF"></a>
+    <a id="anchor105" href="doc105.html">Ofício 12 (45678905)</a>
+  </div>
+</body>
+</html>

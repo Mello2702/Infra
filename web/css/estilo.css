@@ -418,16 +418,16 @@ a {
   border: 0;
   border-top: 1px solid var(--nie-borda);
 }
-.secao-tipos {
+.secao-lista {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.secao-tipos__entrada {
+.secao-lista__entrada {
   display: flex;
   gap: 8px;
 }
-.secao-tipos__entrada input,
+.secao-lista__entrada input,
 .entrada-linha {
   flex: 1;
   min-width: 0;
@@ -440,7 +440,7 @@ a {
   color: var(--nie-texto);
   font: 500 14px var(--fonte);
 }
-.secao-tipos__entrada .botao {
+.secao-lista__entrada .botao {
   min-height: 40px;
   white-space: nowrap;
 }
@@ -665,6 +665,26 @@ a {
 .selo--alerta {
   border-color: rgba(232, 102, 74, 0.5);
   color: var(--nie-erro);
+}
+
+/* Caixa de ajuda recolhível */
+.ajuda {
+  padding: 10px 14px;
+  border: 1px solid var(--nie-borda);
+  border-radius: var(--raio);
+  background: rgba(22, 35, 58, 0.6);
+  font-size: 14px;
+}
+.ajuda summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.ajuda ol {
+  margin: 10px 0 2px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 /* Painel */

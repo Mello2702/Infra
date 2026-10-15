@@ -48,6 +48,24 @@ DADOS = {
             ],
         }
     ],
+    "processos": [
+        {
+            "id": 1,
+            "numero": "024.00120830/2026-12",
+            "unidade_id": 1,
+            "descricao": "Reforma elétrica",
+            "unidades": {"nome": "Sede"},
+            "empenhos": [{"numero": "2026NE000124", "posicao": 2}, {"numero": "2026NE000123", "posicao": 1}],
+        },
+        {
+            "id": 2,
+            "numero": "024.00000001/2026-01",
+            "unidade_id": None,
+            "descricao": None,
+            "unidades": None,
+            "empenhos": [],
+        },
+    ],
     "equipamentos": [
         {
             "id": 1,
@@ -143,7 +161,14 @@ class SupabaseFalso:
         if req.method != "GET":
             corpo = json.loads(req.post_data) if req.post_data else None
             self.gravacoes.append((req.method, tabela, corpo))
-            if tabela.startswith("rpc/"):  # funções do banco (ex.: salvar_unidade)
+            if tabela == "rpc/importar_empenhos":
+                return route.fulfill(json={
+                    "processo_id": 1,
+                    "novo_processo": corpo["p_numero"] != DADOS["processos"][0]["numero"],
+                    # Simula que as notas já cadastradas no processo 1 não entram de novo.
+                    "adicionados": len(set(corpo["p_empenhos"]) - {"2026NE000123", "2026NE000124"}),
+                })
+            if tabela.startswith("rpc/"):  # demais funções do banco (ex.: salvar_unidade)
                 return route.fulfill(json=1)
             if req.method == "POST":
                 return route.fulfill(status=201, body="")

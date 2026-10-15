@@ -56,6 +56,7 @@ def test_tecnico_nao_acessa_usuarios(pagina):
     [
         ("Equipamentos", "Inventário de equipamentos"),
         ("Visitas", "Visitas às unidades"),
+        ("Processos", "Processos"),
         ("Unidades", "Unidades"),
         ("Minha conta", "Minha conta"),
     ],

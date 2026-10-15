@@ -48,6 +48,37 @@ DADOS = {
             ],
         }
     ],
+    "processos_sei": [
+        {
+            "id": 1,
+            "numero": "024.00120830/2026-12",
+            "unidade_id": 1,
+            "descricao": "Reforma elétrica",
+            "tipo_processo": "Infraestrutura: Manutenção predial",
+            "url": "https://sei.sp.gov.br/sei/modulos/pesquisa/md_pesq_processo_exibir.php?x=1",
+            "cabecalho": {"Processo": "024.00120830/2026-12", "Interessados": "Núcleo de Infraestrutura"},
+            "documentos": [{"Documento / Processo": "12345678", "Tipo de Documento": "Ofício"}],
+            "andamentos": [
+                {"Data/Hora": "05/03/2026 14:10", "Unidade": "PRODESP-NIE", "Descrição": "Processo recebido"},
+                {"Data/Hora": "02/03/2026 09:00", "Unidade": "PRODESP-GAB", "Descrição": "Processo remetido"},
+            ],
+            "consultado_em": "2026-10-15T12:00:00+00:00",
+            "unidades": {"nome": "Sede"},
+        },
+        {
+            "id": 2,
+            "numero": "024.00000001/2026-01",
+            "unidade_id": None,
+            "descricao": None,
+            "tipo_processo": None,
+            "url": None,
+            "cabecalho": {},
+            "documentos": [],
+            "andamentos": [],
+            "consultado_em": None,
+            "unidades": None,
+        },
+    ],
     "equipamentos": [
         {
             "id": 1,

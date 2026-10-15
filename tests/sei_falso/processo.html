@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>SEI falso - Processo (testes)</title>
+</head>
+<body>
+  <!-- Mesma estrutura da página do processo na Pesquisa Pública do SEI. -->
+  <table id="tblCabecalho">
+    <tr><th colspan="2">Autuação</th></tr>
+    <tr><td>Processo:</td><td id="numero"></td></tr>
+    <tr><td>Tipo:</td><td>Infraestrutura: Manutenção predial</td></tr>
+    <tr><td>Data de Registro:</td><td>02/03/2026</td></tr>
+    <tr><td>Interessados:</td><td>Núcleo de Infraestrutura</td></tr>
+  </table>
+
+  <table id="tblDocumentos">
+    <caption>Lista de Protocolos</caption>
+    <tr><th></th><th>Documento / Processo</th><th>Tipo de Documento</th><th>Data do Documento</th><th>Unidade</th></tr>
+    <tr><td><input type="checkbox"></td><td>12345678</td><td>Ofício</td><td>02/03/2026</td><td>PRODESP-NIE</td></tr>
+    <tr><td><input type="checkbox"></td><td>12345679</td><td>Despacho</td><td>05/03/2026</td><td>PRODESP-NIE</td></tr>
+  </table>
+
+  <table id="tblHistorico">
+    <caption>Lista de Andamentos</caption>
+    <tr><th>Data/Hora</th><th>Unidade</th><th>Descrição</th></tr>
+    <tr><td>05/03/2026 14:10</td><td>PRODESP-NIE</td><td>Processo recebido na unidade</td></tr>
+    <tr><td>02/03/2026 09:00</td><td>PRODESP-GAB</td><td>Processo remetido pela unidade</td></tr>
+  </table>
+  <script>
+    document.getElementById("numero").textContent = new URLSearchParams(location.search).get("n");
+  </script>
+</body>
+</html>

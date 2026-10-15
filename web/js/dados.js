@@ -83,6 +83,32 @@ export async function listarVisitas() {
   return achatar(achatar(linhas, "unidades", "unidade"), "perfis", "tecnico");
 }
 
+/** Só aceita endereços https do SEI-SP (o arquivo importado pode ter sido alterado). */
+export function urlSei(url) {
+  return typeof url === "string" && /^https:\/\/([a-z0-9-]+\.)*sei\.sp\.gov\.br\//i.test(url) ? url : null;
+}
+
+export async function listarProcessos() {
+  return achatar(await listar("processos_sei", "*, unidades(nome)", "numero"), "unidades", "unidade");
+}
+
+/**
+ * Grava o resultado da ferramenta de consulta ao SEI. Processos já cadastrados
+ * (mesmo número) recebem os dados novos do SEI e mantêm unidade e descrição.
+ */
+export async function importarProcessos(processos) {
+  const linhas = processos.map((p) => ({
+    numero: String(p.numero).trim(),
+    url: urlSei(p.url),
+    tipo_processo: p.tipo_processo ?? null,
+    cabecalho: p.cabecalho ?? {},
+    documentos: p.documentos ?? [],
+    andamentos: p.andamentos ?? [],
+    consultado_em: p.consultado_em ?? new Date().toISOString(),
+  }));
+  await executar(sb.from("processos_sei").upsert(linhas, { onConflict: "numero" }));
+}
+
 export async function inserir(tabela, valores) {
   await executar(sb.from(tabela).insert(valores));
 }

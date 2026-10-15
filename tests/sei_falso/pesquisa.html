@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>SEI falso - Pesquisa Pública (testes)</title>
+</head>
+<body>
+  <!-- Mesma estrutura da Pesquisa Pública do SEI-SP (md_pesq_processo_pesquisar.php). -->
+  <form id="seiSearch" name="seiSearch" method="post">
+    <input type="text" id="txtProtocoloPesquisa" name="txtProtocoloPesquisa">
+    <img id="imgCaptcha" alt="captcha">
+    <input type="text" id="txtInfraCaptcha" name="txtInfraCaptcha" maxlength="6">
+    <input type="submit" id="sbmPesquisar" name="sbmPesquisar" value="Pesquisar">
+  </form>
+  <div id="conteudo" class="retorno-ajax">
+    <table class="pesquisaResultado"><tbody></tbody></table>
+    <div class="total-registros-infinite"></div>
+  </div>
+  <script>
+    const parametros = new URLSearchParams(location.search);
+    const NAO_EXISTE = "999.99999999/2026-99";
+
+    document.getElementById("seiSearch").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const captcha = document.getElementById("txtInfraCaptcha");
+      if (!captcha.value) {
+        alert("Informe o código de confirmação.");
+        return;
+      }
+      captcha.value = "";
+      // O SEI real responde por AJAX: simula a demora.
+      setTimeout(() => {
+        const numero = document.getElementById("txtProtocoloPesquisa").value;
+        const area = document.querySelector(".retorno-ajax");
+        if (numero === NAO_EXISTE) {
+          area.insertAdjacentHTML("beforeend", '<div class="sem-resultado">Nenhum registro encontrado.</div>');
+          return;
+        }
+        const alvo = parametros.get("aba") === "nova" ? ' target="_blank"' : "";
+        area.querySelector("tbody").insertAdjacentHTML(
+          "beforeend",
+          `<tr class="pesquisaTituloRegistro"><td><a href="processo.html?n=${encodeURIComponent(numero)}"${alvo}>${numero}</a></td></tr>` +
+            "<tr><td>Manutenção predial da unidade</td></tr>",
+        );
+      }, 300);
+    });
+
+    // ?auto=1 simula a pessoa: depois que o script preenche o número, digita o
+    // CAPTCHA e clica em Pesquisar. ?errar=1 erra o CAPTCHA na primeira vez.
+    if (parametros.get("auto")) {
+      let tentativas = 0;
+      const timer = setInterval(() => {
+        if (!document.getElementById("txtProtocoloPesquisa").value) return;
+        tentativas += 1;
+        const errar = parametros.get("errar") && tentativas === 1;
+        document.getElementById("txtInfraCaptcha").value = errar ? "" : "ABC123";
+        document.getElementById("sbmPesquisar").click();
+        if (!errar) clearInterval(timer);
+      }, 250);
+    }
+  </script>
+</body>
+</html>

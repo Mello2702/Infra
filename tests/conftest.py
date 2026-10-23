@@ -173,8 +173,14 @@ def site():
 @pytest.fixture(scope="session")
 def navegador():
     with sync_playwright() as p:
-        # Localmente pode usar o Edge/Chrome instalado: PW_CANAL=msedge
-        b = p.chromium.launch(channel=os.environ.get("PW_CANAL") or None)
+        # Localmente pode usar o Edge/Chrome instalado: PW_CANAL=msedge.
+        # PW_VISIVEL=1 mostra o navegador, em câmera lenta, para acompanhar os testes.
+        visivel = os.environ.get("PW_VISIVEL") == "1"
+        b = p.chromium.launch(
+            channel=os.environ.get("PW_CANAL") or None,
+            headless=not visivel,
+            slow_mo=400 if visivel else 0,
+        )
         yield b
         b.close()
 

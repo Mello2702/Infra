@@ -85,7 +85,16 @@ ruff check .
 pytest
 ```
 
-Para usar o Edge já instalado em vez de baixar o Chromium: `$env:PW_CANAL = "msedge"`.
+Os testes usam o [Playwright](https://playwright.dev/python/) em Python (não é preciso Node.js).
+
+```powershell
+$env:PW_CANAL = "msedge"            # usa o Edge já instalado, em vez de baixar o Chromium
+$env:PW_VISIVEL = "1"               # mostra o navegador, em câmera lenta
+pytest tests/test_web.py -k login   # roda só os testes cujo nome contém "login"
+python -m playwright codegen --channel msedge http://localhost:8000   # grava ações e gera código
+```
+
+Para voltar ao modo escondido: `Remove-Item Env:PW_VISIVEL`.
 
 Não coloque `pyproject.toml` nem `requirements.txt` na raiz: o build da Cloudflare trata o
 projeto como pacote Python ao encontrá-los e falha. Por isso as dependências de teste ficam em
